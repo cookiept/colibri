@@ -1,5 +1,9 @@
-<title>Colibri Feedback de Clientes</title>
-<meta name="claude:viewport-fit-sides" content="cover">
+<!doctype html>
+<html lang="pt-PT">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Colibri · Feedback de Clientes (draft v1)</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+Display:wght@500;600;700&family=Noto+Sans:wght@400;500;600;700&display=swap">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.5.0/echarts.min.js"></script>
 <style>
@@ -161,7 +165,8 @@ footer { padding-block: 32px 40px; font-size: 12px; color: var(--muted); }
 footer p { margin: 0 0 4px; max-width: 90ch; }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
-
+</head>
+<body>
 <header class="top">
   <div class="wrap">
     <div class="brand">
@@ -511,3 +516,5 @@ window.addEventListener('resize', () => chart && chart.resize());
 try { matchMedia('(prefers-color-scheme: dark)').addEventListener('change', render); } catch (e) {}
 new MutationObserver(render).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
 </script>
+</body>
+</html>
