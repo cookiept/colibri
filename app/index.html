@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="pt-PT">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Colibri · Feedback de Clientes</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+Display:wght@500;600&family=Noto+Sans:wght@400;500;600&display=swap">
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/base.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+<body>
+  <header class="top">
+    <div class="wrap">
+      <img src="assets/img/colibri-logo.png" alt="Colibri">
+      <span class="sep" aria-hidden="true"></span>
+      <div>
+        <h1>Feedback de clientes</h1>
+        <p>Os ficheiros são lidos neste computador e não são enviados para lado nenhum.</p>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="carregar" aria-label="Carregar ficheiros">
+      <div class="slot">
+        <h2><span class="sw" style="background:var(--src-google)"></span>Google Reviews</h2>
+        <p>Export do Google Business Profile (Excel ou CSV).</p>
+        <input type="file" id="f-google" accept=".xlsx,.xls,.csv" data-fonte="google">
+        <div class="estado" id="e-google"></div>
+      </div>
+      <div class="slot">
+        <h2><span class="sw" style="background:var(--src-jira)"></span>Reclamações Jira</h2>
+        <p>Export CSV do filtro de reclamações.</p>
+        <input type="file" id="f-jira" accept=".xlsx,.xls,.csv" data-fonte="jira">
+        <div class="estado" id="e-jira"></div>
+      </div>
+      <div class="slot">
+        <h2><span class="sw" style="background:var(--src-redes)"></span>Facebook e Instagram</h2>
+        <p>Export da Meta Business Suite.</p>
+        <input type="file" id="f-redes" accept=".xlsx,.xls,.csv" data-fonte="redes">
+        <div class="estado" id="e-redes"></div>
+      </div>
+    </section>
+
+    <section class="vazio" id="vazio">
+      <h2>Carregue pelo menos um ficheiro para começar</h2>
+      <p>Para experimentar, use os ficheiros de exemplo em <code>dados/exemplos/</code>. O ecrã completo está em desenvolvimento; a proposta visual está em <code>prototipos/draft-v1/</code>.</p>
+    </section>
+
+    <section class="resumo" id="resumo" hidden>
+      <div class="metrics" id="metrics"></div>
+      <table>
+        <thead><tr><th>Tema</th><th class="r">Reclamações</th></tr></thead>
+        <tbody id="temas"></tbody>
+      </table>
+    </section>
+  </main>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,25 @@
+# Dados reais: nunca entram no repositório
+dados/*
+!dados/README.md
+!dados/exemplos/
+*.xlsx
+*.xls
+!dados/exemplos/*.xlsx
+
+# Sistema e editores
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+*.swp
+
+# Dependências e builds
+node_modules/
+dist/
+.cache/
+
+# Ficheiros locais
+.env
+*.local
+~$*

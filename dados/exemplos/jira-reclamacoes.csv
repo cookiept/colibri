@@ -1,0 +1,7 @@
+Chave,Criado,Categoria,Subcategoria,Prioridade,Estado,Área de serviço,Descrição,Primeira resposta
+COL-1201,2026-11-01 09:12,Pagamentos,Cobrança duplicada,Alta,Resolvido,Mealhada,"Cobraram duas vezes no cartão e ainda não devolveram.",2026-11-01 15:40
+COL-1202,2026-11-03 18:30,Faturação,Fatura com NIF,Média,Em curso,Pombal,"Pedi fatura com NIF e não foi emitida.",2026-11-04 10:05
+COL-1203,2026-11-06 12:02,Instalações,Sanitários,Média,Resolvido,Aveiras,"Secadores de mãos avariados há semanas.",2026-11-07 09:00
+COL-1204,2026-11-09 08:45,Reembolsos,Reembolso pendente,Alta,Aberto,Leiria,"Estou há três semanas à espera do reembolso.",
+COL-1205,2026-11-14 20:10,Vending,Máquina sem devolução,Baixa,Resolvido,Antuã,"A máquina ficou com as moedas e não deu o produto.",2026-11-15 11:30
+COL-1206,2026-11-19 13:25,Atendimento,Comportamento,Alta,Aberto,Santarém,"Fui mal tratado no balcão e vou fazer queixa à DECO.",

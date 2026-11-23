@@ -1,0 +1,39 @@
+/* Tokens do Design System Grupo Brisa com as cores Colibri.
+   Fonte: docs/design/README.md · decisão 0002. Alterar cores e tipografia só aqui. */
+:root {
+  /* Colibri */
+  --colibri: #B62454;
+  --colibri-soft: #F7BDBE;
+  --colibri-ink: #5A1516;
+  --teal: #005555;
+  --ochre: #A86A12; /* a validar: não vem do DS */
+
+  /* Fontes de dados */
+  --src-google: var(--teal);
+  --src-jira: var(--colibri);
+  --src-redes: var(--ochre);
+
+  /* Neutros (DS Gray, fundo com ligeiro tom rosado) */
+  --bg: #FBF8F8;
+  --panel: #FFFFFF;
+  --ink: #1E1E1E;
+  --ink-2: #444444;
+  --muted: #757575;
+  --line: #E6E2E2;
+  --line-strong: #D9D3D3;
+
+  /* Estado */
+  --good: #1B7A4B;
+  --bad: #B3261E;
+
+  /* Tipografia */
+  --font-display: 'Noto Sans Display', 'Noto Sans', system-ui, sans-serif;
+  --font-body: 'Noto Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  /* Raios (DS: radius 2, 3, 4) */
+  --r-sm: 8px;
+  --r-md: 12px;
+  --r-lg: 16px;
+
+  color-scheme: light;
+}
