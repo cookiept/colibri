@@ -23,7 +23,9 @@ O período e a área de serviço escolhidos no topo aplicam-se a todos os ecrãs
 ## Cores
 
 - Verde para o que é bom (desce o número de reclamações, sobe o rating), vermelho para o que é mau, cinzento quando é neutro.
-- Rosa Colibri só no logótipo, no ecrã de carregamento e no botão da ação principal. Navegação, gráficos e mapa de calor em neutros.
+- Verde Colibri (#005555, do Design System Grupo Brisa) para os dados, a navegação e as ações secundárias: gráficos, barras, mapa de calor, ícones, item ativo do menu.
+- Rosa Colibri (#B62454) só no logótipo, no ecrã de carregamento e no botão da ação principal.
+- Cinzento só para texto, fundos e linhas de comparação (por exemplo a média das áreas).
 - Avisos (toasts): verde com visto quando algo correu bem, vermelho com cruz quando falhou.
 
 ## Menus dos filtros

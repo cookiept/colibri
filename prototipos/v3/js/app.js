@@ -422,9 +422,9 @@
       yAxis: { type: 'value', show: false, min: vals.length ? Math.min.apply(null, vals) - 0.6 : 1, max: vals.length ? Math.max.apply(null, vals) + 0.25 : 5 },
       series: [{
         type: 'line', smooth: 0.45, smoothMonotone: 'x', data: serie, symbol: 'none', connectNulls: true,
-        lineStyle: { width: 2.5, color: '#1E1E1E' },
-        areaStyle: window.echarts ? { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: 'rgba(30,30,30,.12)' }, { offset: 1, color: 'rgba(30,30,30,0)' }]) } : null,
-        markPoint: { symbol: 'circle', symbolSize: 11, itemStyle: { color: '#1E1E1E', borderColor: '#FFFFFF', borderWidth: 2.5 }, label: { show: false }, data: [{ coord: [ult, serie[ult]] }] },
+        lineStyle: { width: 2.5, color: '#005555' },
+        areaStyle: window.echarts ? { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: 'rgba(0,85,85,.2)' }, { offset: 1, color: 'rgba(0,85,85,0)' }]) } : null,
+        markPoint: { symbol: 'circle', symbolSize: 11, itemStyle: { color: '#005555', borderColor: '#FFFFFF', borderWidth: 2.5 }, label: { show: false }, data: [{ coord: [ult, serie[ult]] }] },
       }],
     });
 
@@ -631,8 +631,8 @@
     var a = st.casos.agrupar;
     if (a === 'estado') return ESTADOS.map(function (e) { return { id: e.id, nome: e.id, cor: e.cor, itens: lista.filter(function (x) { return estadoDe(x) === e.id; }) }; });
     if (a === 'fonte') return D.FONTES.map(function (f) { return { id: f.id, nome: f.nome, cor: COR_FONTE[f.id], itens: lista.filter(function (x) { return x.fonte === f.id; }) }; });
-    if (a === 'area') return D.AREAS.concat(['']).map(function (ar) { return { id: ar || 'sem', nome: ar || 'No area given', cor: '#484747', itens: lista.filter(function (x) { return (x.area || '') === ar; }) }; });
-    return D.TEMAS.map(function (t) { return { id: t.nome, nome: t.nome, cor: '#484747', itens: lista.filter(function (x) { return x.tema === t.nome; }) }; })
+    if (a === 'area') return D.AREAS.concat(['']).map(function (ar) { return { id: ar || 'sem', nome: ar || 'No area given', cor: '#005555', itens: lista.filter(function (x) { return (x.area || '') === ar; }) }; });
+    return D.TEMAS.map(function (t) { return { id: t.nome, nome: t.nome, cor: '#005555', itens: lista.filter(function (x) { return x.tema === t.nome; }) }; })
       .sort(function (p, q) { return q.itens.length - p.itens.length; });
   }
 
@@ -817,7 +817,7 @@
       D.AREAS.map(function (a, i) {
         return '<tr><td class="a">' + esc(a) + '</td>' + vals[i].map(function (v) {
           var p = v / vmax;
-          return '<td class="c" style="background:' + (v ? 'rgba(30,30,30,' + (0.05 + p * 0.8).toFixed(2) + ')' : '#FAFAF8') + ';color:' + (p > 0.5 ? '#FFFFFF' : '#1E1E1E') + '">' + (v || '') + '</td>';
+          return '<td class="c" style="background:' + (v ? 'rgba(0,85,85,' + (0.07 + p * 0.85).toFixed(2) + ')' : '#FAFAF8') + ';color:' + (p > 0.5 ? '#FFFFFF' : '#003C3C') + '">' + (v || '') + '</td>';
         }).join('') + '</tr>';
       }).join('') + '</tbody></table></div></section>';
     return h;
@@ -909,8 +909,8 @@
       yAxis: Object.assign({ type: 'value', min: 0, splitNumber: 3, axisLabel: { color: '#6E6D6B', fontSize: 11 } }, GRELHA),
       series: [
         { name: 'Area average', type: 'line', smooth: 0.35, smoothMonotone: 'x', data: sM, symbol: 'none', lineStyle: { width: 1.5, type: [4, 3], color: '#9A9895' } },
-        { name: nome, type: 'line', smooth: 0.35, smoothMonotone: 'x', data: sA, symbol: 'circle', symbolSize: 6, lineStyle: { width: 2.5, color: '#1E1E1E' }, itemStyle: { color: '#FFFFFF', borderColor: '#1E1E1E', borderWidth: 2 },
-          areaStyle: window.echarts ? { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: 'rgba(30,30,30,.08)' }, { offset: 1, color: 'rgba(30,30,30,0)' }]) } : null },
+        { name: nome, type: 'line', smooth: 0.35, smoothMonotone: 'x', data: sA, symbol: 'circle', symbolSize: 6, lineStyle: { width: 2.5, color: '#005555' }, itemStyle: { color: '#FFFFFF', borderColor: '#005555', borderWidth: 2 },
+          areaStyle: window.echarts ? { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: 'rgba(0,85,85,.14)' }, { offset: 1, color: 'rgba(0,85,85,0)' }]) } : null },
       ],
     });
   }

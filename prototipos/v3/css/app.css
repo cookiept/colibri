@@ -775,3 +775,49 @@ svg { flex: none; }
   .voice blockquote { font-size: 19px; }
   .todo-stat { flex-basis: 100%; }
 }
+
+/* ===================== v3.7: one colour system ===================== */
+/* Colibri green (#005555) carries data, navigation and secondary actions; Colibri pink stays for the
+   brand and the main action; green/red keep their meaning (good/bad); source colours stay in their logos and bars.
+   Greys remain only for text, surfaces and comparison lines (e.g. "Area average"). */
+:root {
+  --teal: #005555; --teal-hover: #004343; --teal-50: #E8F3F3; --teal-100: #CFE6E6; --teal-300: #7FB6B6; --teal-ink: #003C3C;
+}
+.brand { padding: 0 6px 18px; gap: 6px; }
+.brand img { height: auto; width: 172px; max-width: 100%; }
+:focus-visible { outline-color: var(--teal); }
+.nav a[aria-current="page"] { background: var(--teal-50); color: var(--teal-ink); box-shadow: none; }
+.nav a[aria-current="page"] svg { color: var(--teal); }
+.nav-count { background: var(--teal-100); color: var(--teal-ink); }
+.nav a[aria-current="page"] .nav-count { background: var(--teal); color: #FFFFFF; }
+.btn-dark { background: var(--teal); }
+.btn-dark:hover { background: var(--teal-hover); }
+.link { color: var(--teal); }
+.link-u:hover { color: var(--teal); }
+.mini-bars .b { background: var(--teal-100); }
+.mini-bars .b.on { background: var(--teal); }
+.dest .mk { background: var(--teal-50); color: var(--teal); }
+.dest button:hover .mk { background: var(--teal-100); }
+.dest .bar { background: var(--teal-50); }
+.dest .fill { background: var(--teal); }
+.ic-circle { background: var(--teal-50); color: var(--teal); }
+.area-mark { background: var(--teal-50); color: var(--teal); border-color: var(--teal-100); }
+.bar-row .fill { background: var(--teal-300); }
+.bar-row.top .fill { background: var(--teal); }
+.rank .fill { background: var(--teal-300); }
+.rank li:first-child .fill { background: var(--teal); }
+.heat-key i { background: linear-gradient(90deg, rgba(0, 85, 85, .06), rgba(0, 85, 85, .9)); }
+.cases tr.is-open td { background: var(--teal-50) !important; }
+.signal-top .spark { background: var(--teal); }
+.dd.open .dd-btn { border-color: var(--teal); box-shadow: 0 0 0 3px rgba(0, 85, 85, .1); }
+.dd-opt.active { background: var(--teal-50); }
+.dd-opt.is-value { color: var(--teal-ink); }
+.dd-opt .ck { stroke: var(--teal); }
+.btn-view:hover { background: var(--teal); border-color: var(--teal); }
+.todo-stat.on { border-color: var(--teal); box-shadow: 0 0 0 1px var(--teal); background: var(--teal-50); }
+.drop.over { border-color: var(--teal); background: var(--teal-50); }
+.reply textarea:focus { outline-color: var(--teal); }
+.pending { background: var(--teal-50); border-color: var(--teal-100); }
+.pending-item { border-color: var(--teal-100); }
+.pending-head h2 { color: var(--teal-ink); }
+.pill-delta.neutral, .pill-delta.flat { background: var(--teal-50); color: var(--teal-ink); }

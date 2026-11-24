@@ -5,6 +5,7 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-PT/1.1.0/).
 ## [Por lançar]
 
 ### Alterado
+- v3: um só sistema de cor. Verde Colibri nos dados e na navegação, rosa na marca e na ação principal. Logótipo recortado e maior.
 - v3: Visão geral só com análise. O sinal passa a "What changed" a toda a largura e a voz do cliente a três citações lado a lado; "To handle" passa para o topo de Cases e filtra a tabela.
 - v3: variações a verde quando são boas e a vermelho quando são más; rosa Colibri só na marca e na ação principal; aviso de dados fictícios retirado do ecrã.
 
