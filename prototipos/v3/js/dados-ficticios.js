@@ -1,6 +1,6 @@
-/* Dados fictícios para o protótipo.
-   Gerados de forma determinística: os números são sempre os mesmos ao recarregar.
-   Não representam a Colibri. */
+/* Sample data for the prototype.
+   Generated deterministically: the numbers are the same on every reload.
+   They do not represent Colibri. */
 (function () {
   'use strict';
 
@@ -15,46 +15,46 @@
 
   var FONTES = [
     { id: 'google', nome: 'Google Reviews', curto: 'Google', logo: 'assets/logos/google.svg', canais: ['Google'] },
-    { id: 'jira', nome: 'Reclamações Jira', curto: 'Jira', logo: 'assets/logos/jira.svg', canais: ['Jira'] },
-    { id: 'redes', nome: 'Facebook e Instagram', curto: 'Redes sociais', logo: 'assets/logos/instagram.svg', canais: ['Facebook', 'Instagram'] },
+    { id: 'jira', nome: 'Jira complaints', curto: 'Jira', logo: 'assets/logos/jira.svg', canais: ['Jira'] },
+    { id: 'redes', nome: 'Facebook and Instagram', curto: 'Social media', logo: 'assets/logos/instagram.svg', canais: ['Facebook', 'Instagram'] },
   ];
 
   var AREAS = ['Aveiras', 'Pombal', 'Mealhada', 'Leiria', 'Santarém', 'Antuã', 'Alcácer do Sal', 'Almodôvar'];
   var AREA_PESOS = [16, 14, 13, 12, 11, 10, 9, 7];
 
-  // nome, peso, NPS VoC do driver (fictício), nome curto, ícone
+  // name, weight, VoC driver NPS (sample), short name, icon
   var TEMAS = [
-    { nome: 'Instalações sanitárias', peso: 17, nps: 14, curto: 'Sanitários', icone: 'gota' },
-    { nome: 'Serviço/Atendimento', peso: 15, nps: 33, curto: 'Atendimento', icone: 'pessoa' },
-    { nome: 'Alimentação e bebidas', peso: 13, nps: 27, curto: 'Alimentação', icone: 'chavena' },
-    { nome: 'Preço', peso: 12, nps: null, curto: 'Preço', icone: 'euro' },
-    { nome: 'Caixa e pagamento', peso: 9, nps: 38, curto: 'Caixa', icone: 'cartao' },
-    { nome: 'Chegada e estacionamento', peso: 7, nps: 41, curto: 'Estacionamento', icone: 'parque' },
-    { nome: 'Zona de refeição', peso: 6, nps: 30, curto: 'Refeição', icone: 'mesa' },
-    { nome: 'Máquinas de vending', peso: 5, nps: 19, curto: 'Vending', icone: 'caixa' },
-    { nome: 'Reembolsos e faturação', peso: 5, nps: null, curto: 'Reembolsos', icone: 'recibo' },
-    { nome: 'Serviço Colibri Express', peso: 3, nps: 45, curto: 'Express', icone: 'raio' },
-    { nome: 'Espaços infantis', peso: 3, nps: 36, curto: 'Infantil', icone: 'estrela' },
-    { nome: 'Produtos', peso: 3, nps: 40, curto: 'Produtos', icone: 'saco' },
+    { nome: 'Restrooms', peso: 17, nps: 14, curto: 'Restrooms', icone: 'gota' },
+    { nome: 'Customer service', peso: 15, nps: 33, curto: 'Service', icone: 'pessoa' },
+    { nome: 'Food and drinks', peso: 13, nps: 27, curto: 'Food', icone: 'chavena' },
+    { nome: 'Price', peso: 12, nps: null, curto: 'Price', icone: 'euro' },
+    { nome: 'Checkout and payment', peso: 9, nps: 38, curto: 'Checkout', icone: 'cartao' },
+    { nome: 'Arrival and parking', peso: 7, nps: 41, curto: 'Parking', icone: 'parque' },
+    { nome: 'Dining area', peso: 6, nps: 30, curto: 'Dining', icone: 'mesa' },
+    { nome: 'Vending machines', peso: 5, nps: 19, curto: 'Vending', icone: 'caixa' },
+    { nome: 'Refunds and invoicing', peso: 5, nps: null, curto: 'Refunds', icone: 'recibo' },
+    { nome: 'Colibri Express service', peso: 3, nps: 45, curto: 'Express', icone: 'raio' },
+    { nome: 'Kids areas', peso: 3, nps: 36, curto: 'Kids', icone: 'estrela' },
+    { nome: 'Products', peso: 3, nps: 40, curto: 'Products', icone: 'saco' },
   ];
 
   var TEXTOS = {
-    'Instalações sanitárias': ['Casas de banho sem papel e com mau cheiro às 8h da manhã.', 'Só uma casa de banho a funcionar, as outras fechadas para limpeza.', 'Secadores de mãos avariados há semanas.', 'Chão molhado e sem sinalização, quase escorreguei.'],
-    'Serviço/Atendimento': ['Fila de 15 pessoas e só uma funcionária no balcão do café.', 'Perguntei onde ficava o carregador elétrico e ninguém soube dizer.', 'Atendimento pouco simpático, nem um bom dia.'],
-    'Alimentação e bebidas': ['Sandes seca e café frio.', 'A sopa veio morna e sem sabor.', 'Quase nenhuma opção vegetariana ao almoço.'],
-    'Preço': ['4,20 € por uma garrafa de água de 1,5 L.', 'Um menu simples a 14 € é demasiado.', 'Os preços estão muito acima de qualquer café na cidade.'],
-    'Caixa e pagamento': ['Cobraram duas vezes no cartão e ainda não devolveram.', 'Só uma caixa aberta num domingo de agosto.', 'O multibanco não funcionava e não aceitavam MB Way.'],
-    'Chegada e estacionamento': ['Lugares de ligeiros ocupados por camiões.', 'Não há lugares para autocaravanas.', 'A sinalética à entrada da área é confusa.'],
-    'Zona de refeição': ['Mesas todas por limpar à hora de almoço.', 'Ar condicionado desligado com 38 graus lá fora.', 'Barulho e nenhum lugar livre.'],
-    'Máquinas de vending': ['A máquina ficou com as moedas e não deu o produto.', 'Vending sem stock durante a noite.', 'A máquina de café não aceita cartão.'],
-    'Reembolsos e faturação': ['Pedi fatura com NIF e não foi emitida.', 'Estou há três semanas à espera do reembolso.', 'O talão tinha um valor diferente do cobrado.'],
-    'Serviço Colibri Express': ['O Express estava fechado dentro do horário anunciado.', 'Demorou mais do que o balcão normal.', 'Pedido do Express veio errado.'],
-    'Espaços infantis': ['Parque infantil com um baloiço partido.', 'Zona infantil suja e sem vigilância.', 'O muda-fraldas só existe na casa de banho feminina.'],
-    'Produtos': ['O produto da promoção não existia na loja.', 'Prateleiras vazias à noite.', 'Pouca variedade de produtos regionais.'],
+    'Restrooms': ['No toilet paper and a bad smell at 8 in the morning.', 'Only one restroom open, the others closed for cleaning.', 'Hand dryers have been broken for weeks.', 'Wet floor with no warning sign, I almost slipped.'],
+    'Customer service': ['A queue of 15 people and only one person at the coffee counter.', 'I asked where the EV charger was and nobody knew.', 'Unfriendly service, not even a good morning.'],
+    'Food and drinks': ['Dry sandwich and cold coffee.', 'The soup was lukewarm and tasteless.', 'Hardly any vegetarian options at lunch.'],
+    'Price': ['€4.20 for a 1.5 L bottle of water.', '€14 for a simple meal deal is too much.', 'Prices are far above any café in town.'],
+    'Checkout and payment': ['I was charged twice on my card and still have not been refunded.', 'Only one till open on a Sunday in August.', 'The card machine was down and they did not take MB Way.'],
+    'Arrival and parking': ['Car spaces taken by lorries.', 'No spaces for motorhomes.', 'The signs at the entrance are confusing.'],
+    'Dining area': ['Every table left dirty at lunchtime.', 'Air conditioning off with 38 degrees outside.', 'Noisy and not a single free seat.'],
+    'Vending machines': ['The machine took my coins and gave me nothing.', 'Vending machines empty overnight.', 'The coffee machine does not take cards.'],
+    'Refunds and invoicing': ['I asked for an invoice with my tax number and never got it.', 'I have been waiting three weeks for a refund.', 'The receipt showed a different amount from what I paid.'],
+    'Colibri Express service': ['Express was closed during its advertised hours.', 'It took longer than the regular counter.', 'My Express order was wrong.'],
+    'Kids areas': ['Playground with a broken swing.', 'Kids area dirty and unsupervised.', 'The baby changing table is only in the women\'s restroom.'],
+    'Products': ['The promoted product was not in the shop.', 'Empty shelves at night.', 'Little choice of regional products.'],
   };
-  var ELOGIOS = ['Tudo limpo e o staff foi muito simpático.', 'Paragem rápida e café bom.', 'Desde as obras ficou muito melhor.', 'Os pastéis de nata continuam os melhores da A1.'];
+  var ELOGIOS = ['Everything was clean and the staff were very friendly.', 'Quick stop and good coffee.', 'Much better since the renovation.', 'Still the best pastéis de nata on the A1.'];
 
-  // 24 meses: m = 0 é dez 2024, m = 23 é nov 2026
+  // 24 months: m = 0 is Dec 2024, m = 23 is Nov 2026
   var MENCOES = [];
   var n = 0;
   for (var m = 0; m < 24; m++) {
@@ -62,69 +62,69 @@
     var verao = (mes === 6 || mes === 7) ? 1.35 : 1;
     var recente = m >= 21 ? 1.18 : 1;
     var total = Math.round(52 * verao * recente + rnd() * 10);
-    var melhoria = m / 23 * 0.35; // o rating Google melhora devagar ao longo do tempo
+    var melhoria = m / 23 * 0.35; // the Google rating slowly improves over time
     for (var i = 0; i < total; i++) {
       var fonte = pick(['google', 'jira', 'redes'], [46, 29, 25]);
       var canal = fonte === 'google' ? 'Google' : fonte === 'jira' ? 'Jira' : pick(['Facebook', 'Instagram'], [55, 45]);
       var tema = pick(TEMAS.map(function (t) { return t.nome; }), TEMAS.map(function (t) { return t.peso; }));
       var area = pick(AREAS, AREA_PESOS);
-      if (m >= 21 && area === 'Aveiras' && rnd() < 0.45) tema = 'Instalações sanitárias';
+      if (m >= 21 && area === 'Aveiras' && rnd() < 0.45) tema = 'Restrooms';
       var estrelas = null, sentimento;
       if (fonte === 'google') {
         estrelas = pick([1, 2, 3, 4, 5], [22 - melhoria * 20, 13, 11, 18, 34 + melhoria * 20]);
-        sentimento = estrelas <= 2 ? 'negativo' : estrelas === 3 ? 'neutro' : 'positivo';
+        sentimento = estrelas <= 2 ? 'negative' : estrelas === 3 ? 'neutral' : 'positive';
       } else if (fonte === 'jira') {
-        sentimento = 'negativo';
+        sentimento = 'negative';
       } else {
-        sentimento = pick(['negativo', 'neutro', 'positivo'], [56, 25, 19]);
+        sentimento = pick(['negative', 'neutral', 'positive'], [56, 25, 19]);
       }
-      var gravidade = sentimento !== 'negativo' ? 'Baixa' : (estrelas === 1 || rnd() < 0.13) ? 'Alta' : pick(['Média', 'Baixa'], [70, 30]);
+      var gravidade = sentimento !== 'negative' ? 'Low' : (estrelas === 1 || rnd() < 0.13) ? 'High' : pick(['Medium', 'Low'], [70, 30]);
       var respondido = fonte === 'jira' ? rnd() < 0.93 : fonte === 'google' ? rnd() < (0.45 + melhoria * 0.4) : rnd() < 0.72;
       var horas = fonte === 'jira' ? 16 + rnd() * 60 : fonte === 'google' ? 24 + rnd() * 110 : 2 + rnd() * 18;
       MENCOES.push({
         id: (fonte === 'jira' ? 'COL-' : fonte === 'google' ? 'GR-' : 'RS-') + String(1000 + (n++)),
-        m: m, dia: 1 + Math.floor(rnd() * (m === 23 ? 23 : 28)) /* nov 2026 só até dia 23 */, fonte: fonte, canal: canal, tema: tema,
+        m: m, dia: 1 + Math.floor(rnd() * (m === 23 ? 23 : 28)) /* Nov 2026 only up to the 23rd */, fonte: fonte, canal: canal, tema: tema,
         area: fonte !== 'redes' || rnd() < 0.35 ? area : null,
         sentimento: sentimento, estrelas: estrelas, gravidade: gravidade,
         respondido: respondido, horas: horas,
-        texto: sentimento === 'positivo' ? pick(ELOGIOS, [1, 1, 1, 1]) : pick(TEXTOS[tema], TEXTOS[tema].map(function () { return 1; })),
+        texto: sentimento === 'positive' ? pick(ELOGIOS, [1, 1, 1, 1]) : pick(TEXTOS[tema], TEXTOS[tema].map(function () { return 1; })),
       });
     }
   }
 
-  // Informação de cada área de serviço (fictícia)
+  // Details of each service area (sample)
   var AREA_INFO = {
-    'Aveiras':        { via: 'A1', km: 'km 48', sentido: 'Ambos os sentidos', gestor: 'Marta Sousa', servicos: ['Restaurante', 'Colibri Express', 'Loja', 'Posto de carregamento'] },
-    'Pombal':         { via: 'A1', km: 'km 155', sentido: 'Ambos os sentidos', gestor: 'Rui Carvalho', servicos: ['Restaurante', 'Colibri Express', 'Loja'] },
-    'Mealhada':       { via: 'A1', km: 'km 211', sentido: 'Norte–Sul', gestor: 'Inês Pinto', servicos: ['Restaurante', 'Loja', 'Espaço infantil'] },
-    'Leiria':         { via: 'A1', km: 'km 117', sentido: 'Ambos os sentidos', gestor: 'Tiago Lopes', servicos: ['Restaurante', 'Colibri Express', 'Posto de carregamento'] },
-    'Santarém':       { via: 'A1', km: 'km 73', sentido: 'Sul–Norte', gestor: 'Sara Matos', servicos: ['Restaurante', 'Loja'] },
-    'Antuã':          { via: 'A1', km: 'km 262', sentido: 'Ambos os sentidos', gestor: 'Nuno Faria', servicos: ['Restaurante', 'Colibri Express', 'Loja'] },
-    'Alcácer do Sal': { via: 'A2', km: 'km 82', sentido: 'Ambos os sentidos', gestor: 'Joana Reis', servicos: ['Restaurante', 'Loja', 'Espaço infantil'] },
-    'Almodôvar':      { via: 'A2', km: 'km 186', sentido: 'Ambos os sentidos', gestor: 'Pedro Neves', servicos: ['Restaurante', 'Loja'] },
+    'Aveiras':        { via: 'A1', km: 'km 48', sentido: 'Both directions', gestor: 'Marta Sousa', servicos: ['Restaurant', 'Colibri Express', 'Shop', 'EV charging'] },
+    'Pombal':         { via: 'A1', km: 'km 155', sentido: 'Both directions', gestor: 'Rui Carvalho', servicos: ['Restaurant', 'Colibri Express', 'Shop'] },
+    'Mealhada':       { via: 'A1', km: 'km 211', sentido: 'North–South', gestor: 'Inês Pinto', servicos: ['Restaurant', 'Shop', 'Kids area'] },
+    'Leiria':         { via: 'A1', km: 'km 117', sentido: 'Both directions', gestor: 'Tiago Lopes', servicos: ['Restaurant', 'Colibri Express', 'EV charging'] },
+    'Santarém':       { via: 'A1', km: 'km 73', sentido: 'South–North', gestor: 'Sara Matos', servicos: ['Restaurant', 'Shop'] },
+    'Antuã':          { via: 'A1', km: 'km 262', sentido: 'Both directions', gestor: 'Nuno Faria', servicos: ['Restaurant', 'Colibri Express', 'Shop'] },
+    'Alcácer do Sal': { via: 'A2', km: 'km 82', sentido: 'Both directions', gestor: 'Joana Reis', servicos: ['Restaurant', 'Shop', 'Kids area'] },
+    'Almodôvar':      { via: 'A2', km: 'km 186', sentido: 'Both directions', gestor: 'Pedro Neves', servicos: ['Restaurant', 'Shop'] },
   };
 
-  // Estado e responsável de cada menção. Gerador à parte para não mexer nos números acima.
+  // Status and owner of each mention. Separate generator so the numbers above do not change.
   var seed2 = 7;
   function rnd2() { seed2 = (seed2 * 1664525 + 1013904223) % 4294967296; return seed2 / 4294967296; }
   var HOJE = new Date(2026, 10, 24);
-  // O tema de um elogio segue o que o texto diz
+  // A praise comment's topic follows what the text says
   var TEMA_ELOGIO = {
-    'Tudo limpo e o staff foi muito simpático.': 'Serviço/Atendimento',
-    'Paragem rápida e café bom.': 'Alimentação e bebidas',
-    'Desde as obras ficou muito melhor.': 'Zona de refeição',
-    'Os pastéis de nata continuam os melhores da A1.': 'Alimentação e bebidas',
+    'Everything was clean and the staff were very friendly.': 'Customer service',
+    'Quick stop and good coffee.': 'Food and drinks',
+    'Much better since the renovation.': 'Dining area',
+    'Still the best pastéis de nata on the A1.': 'Food and drinks',
   };
   MENCOES.forEach(function (x) {
     var d = new Date(2024, 11 + x.m, x.dia);
     var dias = Math.round((HOJE - d) / 864e5);
-    if (x.respondido) x.estado = dias <= 12 && rnd2() < 0.8 ? 'Respondido' : 'Fechado';
-    else if (dias <= 5) x.estado = rnd2() < 0.7 ? 'Novo' : 'Em análise';
-    else if (dias <= 30) x.estado = rnd2() < 0.75 ? 'Em análise' : 'Novo';
-    else if (dias <= 75 && x.sentimento !== 'positivo') x.estado = 'Em análise';
-    else x.estado = 'Fechado';
-    x.responsavel = x.area ? AREA_INFO[x.area].gestor : 'Equipa CX';
-    if (x.sentimento === 'positivo' && TEMA_ELOGIO[x.texto]) x.tema = TEMA_ELOGIO[x.texto];
+    if (x.respondido) x.estado = dias <= 12 && rnd2() < 0.8 ? 'Replied' : 'Closed';
+    else if (dias <= 5) x.estado = rnd2() < 0.7 ? 'New' : 'In review';
+    else if (dias <= 30) x.estado = rnd2() < 0.75 ? 'In review' : 'New';
+    else if (dias <= 75 && x.sentimento !== 'positive') x.estado = 'In review';
+    else x.estado = 'Closed';
+    x.responsavel = x.area ? AREA_INFO[x.area].gestor : 'CX Team';
+    if (x.sentimento === 'positive' && TEMA_ELOGIO[x.texto]) x.tema = TEMA_ELOGIO[x.texto];
   });
 
   window.COLIBRI_DADOS = { FONTES: FONTES, AREAS: AREAS, AREA_INFO: AREA_INFO, TEMAS: TEMAS, MENCOES: MENCOES, HOJE: HOJE };

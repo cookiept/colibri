@@ -2,7 +2,7 @@
 
 Segunda proposta da interface, organizada como um produto de trabalho e não como uma página de relatório. Base neutra do Design System Grupo Brisa, com o rosa Colibri só para ações e marca, e as cores das fontes só nos logótipos e nas barras.
 
-**Dados fictícios**, gerados em `js/dados-ficticios.js`.
+**Dados fictícios**, gerados em `js/dados-ficticios.js`. A interface está em inglês; o aviso de dados fictícios saiu do ecrã mas continua aqui e no código.
 
 ## Como abrir
 
@@ -12,19 +12,29 @@ Abrir `index.html` no browser (funciona com duplo clique, sem servidor). Também
 
 | Ecrã | Endereço | O que tem |
 | --- | --- | --- |
-| Visão geral | `#/visao-geral` | Cartões com número, variação e gráfico (reclamações, menções por fonte, rating Google), última atividade; áreas de serviço, respostas por mês e temas; sinal principal (área × tema) com a média das áreas, voz do cliente e casos por tratar |
-| Casos | `#/casos` | Tabela agrupada por estado, área, fonte ou tema; pesquisa e filtros; painel lateral com histórico, mudança de estado e modelo de resposta |
+| Visão geral | `#/overview` | Cartões com número, variação e gráfico (reclamações, menções por fonte, rating Google), última atividade; áreas de serviço, respostas por mês e temas; sinal principal (área × tema) com a média das áreas, voz do cliente e casos por tratar |
+| Casos | `#/cases` | Tabela agrupada por estado, área, fonte ou tema; pesquisa e filtros; painel lateral com histórico, mudança de estado e modelo de resposta |
 | Áreas de serviço | `#/areas` | Tabela comparativa das áreas e mapa de calor área × tema |
 | Ficha da área | `#/areas/<nome>` | Ficha (autoestrada, responsável, serviços), casos por tratar, resumo com variação, temas face à média das áreas, evolução mensal, comentários recentes |
-| Fontes | `#/fontes` | De onde vêm os dados, carregamento de ficheiros e regras de classificação |
+| Fontes | `#/sources` | De onde vêm os dados, carregamento de ficheiros e regras de classificação |
 
 O período e a área de serviço escolhidos no topo aplicam-se a todos os ecrãs.
 
+## Cores
+
+- Verde para o que é bom (desce o número de reclamações, sobe o rating), vermelho para o que é mau, cinzento quando é neutro.
+- Rosa Colibri só no logótipo, no ecrã de carregamento e no botão da ação principal. Navegação, gráficos e mapa de calor em neutros.
+- Avisos (toasts): verde com visto quando algo correu bem, vermelho com cruz quando falhou.
+
+## Menus dos filtros
+
+Os filtros usam menus desenhados pelo site e não a lista do browser. Seguem o padrão *select-only combobox* do W3C ARIA Authoring Practices: setas, Enter, Espaço, Esc, Home, End, Tab e escrever as primeiras letras. O `<select>` nativo continua escondido na página como fonte do valor. Não usamos ainda `appearance: base-select` porque o Firefox não o suporta.
+
 ## Organizar a Visão geral
 
-- Carregar em **Organizar**, ou manter o dedo/rato premido num bloco, para entrar em modo de edição (os blocos tremem).
+- Carregar em **Arrange**, ou manter o dedo/rato premido num bloco, para entrar em modo de edição (os blocos tremem).
 - Arrastar um bloco para o lugar de outro.
-- **Concluído** ou `Esc` para sair. **Repor ordem** volta à ordem original.
+- **Done** ou `Esc` para sair. **Reset order** volta à ordem original.
 - A ordem fica guardada neste browser (`localStorage`).
 
 ## Carregamento

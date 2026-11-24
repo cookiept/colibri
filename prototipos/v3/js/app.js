@@ -1,20 +1,20 @@
-/* Colibri · Feedback de clientes
-   Protótipo navegável: Visão geral, Casos, Áreas de serviço (lista e ficha) e Fontes.
-   Script clássico, sem módulos, para abrir com duplo clique. */
+/* Colibri · Customer feedback
+   Clickable prototype: Overview, Cases, Service areas (list and detail) and Sources.
+   Classic script, no modules, so it opens with a double click. */
 (function () {
   'use strict';
 
   var D = window.COLIBRI_DADOS;
   var HOJE = D.HOJE;
-  var MES = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
-  var MES_LONGO = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
+  var MES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  var MES_LONGO = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
   var LOGO = { Google: 'assets/logos/google.svg', Jira: 'assets/logos/jira.svg', Facebook: 'assets/logos/facebook.svg', Instagram: 'assets/logos/instagram.svg' };
-  var ORDEM_GRAV = { Alta: 0, 'Média': 1, Baixa: 2 };
+  var ORDEM_GRAV = { High: 0, Medium: 1, Low: 2 };
   var ESTADOS = [
-    { id: 'Novo', cls: 'novo', cor: '#B62454' },
-    { id: 'Em análise', cls: 'anal', cor: '#D08A00' },
-    { id: 'Respondido', cls: 'resp', cor: '#1B7A4B' },
-    { id: 'Fechado', cls: 'fech', cor: '#A3A19D' },
+    { id: 'New', cls: 'novo', cor: '#3D6FD6' },
+    { id: 'In review', cls: 'anal', cor: '#D08A00' },
+    { id: 'Replied', cls: 'resp', cor: '#1B7A4B' },
+    { id: 'Closed', cls: 'fech', cor: '#A3A19D' },
   ];
   // Cores lisas por fonte (sem degradês)
   var COR_FONTE = { google: '#4285F4', jira: '#6554C0', redes: '#E1306C' };
@@ -58,19 +58,19 @@
   // ---------- utilitários ----------
   function $(id) { return document.getElementById(id); }
   function $$(sel, root) { return Array.prototype.slice.call((root || document).querySelectorAll(sel)); }
-  function nf(n, d) { d = d || 0; return Number(n).toLocaleString('pt-PT', { minimumFractionDigits: d, maximumFractionDigits: d }); }
+  function nf(n, d) { d = d || 0; return Number(n).toLocaleString('en-GB', { minimumFractionDigits: d, maximumFractionDigits: d }); }
   function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   function norm(s) { return String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase(); }
   function mesDe(m) { return new Date(2024, 11 + m, 1); }
   function mesTxt(m, ano) { var d = mesDe(m); return MES[d.getMonth()] + (ano ? ' ' + d.getFullYear() : ''); }
   function dataDe(x) { var d = mesDe(x.m); return new Date(d.getFullYear(), d.getMonth(), x.dia); }
   function diasAtras(x) { return Math.max(0, Math.round((HOJE - dataDe(x)) / 864e5)); }
-  function dataLonga(x) { var d = dataDe(x); return d.getDate() + ' de ' + MES_LONGO[d.getMonth()] + ' de ' + d.getFullYear(); }
+  function dataLonga(x) { var d = dataDe(x); return d.getDate() + ' ' + MES_LONGO[d.getMonth()] + ' ' + d.getFullYear(); }
   function quando(x) {
     var d = diasAtras(x);
-    if (d <= 0) return 'hoje';
-    if (d === 1) return 'ontem';
-    if (d < 30) return 'há ' + d + ' dias';
+    if (d <= 0) return 'today';
+    if (d === 1) return 'yesterday';
+    if (d < 30) return d + ' days ago';
     var dt = dataDe(x); return dt.getDate() + ' ' + MES[dt.getMonth()] + ' ' + dt.getFullYear();
   }
   function tema(nome) { return D.TEMAS.filter(function (t) { return t.nome === nome; })[0]; }
@@ -79,8 +79,8 @@
   function media(arr, f) { return arr.length ? soma(arr, f) / arr.length : null; }
   function iniciais(nome) { var p = nome.split(' ').filter(function (w) { return w.length > 2 || /^[A-Z]/.test(w); }); return (p[0][0] + (p.length > 1 ? p[p.length - 1][0] : p[0][1])).toUpperCase(); }
   function avCls(nome) { var h = 0; for (var i = 0; i < nome.length; i++) h = (h * 31 + nome.charCodeAt(i)) % 997; return 'av-' + (h % 5); }
-  function avatar(nome) { return '<span class="av ' + avCls(nome) + '" aria-hidden="true">' + esc(nome === 'Equipa CX' ? 'CX' : iniciais(nome)) + '</span>'; }
-  function estrelas(n) { return n ? '<span class="stars" aria-label="' + n + ' de 5 estrelas">' + '★'.repeat(n) + '<s>' + '★'.repeat(5 - n) + '</s></span>' : ''; }
+  function avatar(nome) { return '<span class="av ' + avCls(nome) + '" aria-hidden="true">' + esc(nome === 'CX Team' ? 'CX' : iniciais(nome)) + '</span>'; }
+  function estrelas(n) { return n ? '<span class="stars" aria-label="' + n + ' out of 5 stars">' + '★'.repeat(n) + '<s>' + '★'.repeat(5 - n) + '</s></span>' : ''; }
   function logoFonte(f) {
     return f.id === 'redes' ? '<span class="src-pair"><img class="src-logo" src="' + LOGO.Facebook + '" alt=""><img class="src-logo" src="' + LOGO.Instagram + '" alt=""></span>' : '<img class="src-logo" src="' + f.logo + '" alt="">';
   }
@@ -120,27 +120,27 @@
   var st = {
     periodo: 3, area: '',
     casos: { q: '', fonte: '', grav: '', tema: '', agrupar: 'estado' },
-    abertos: {}, mostrar: {}, voz: 0, drawer: null,
+    abertos: {}, mostrar: {}, voz: 0, drawer: null, actFonte: '',
   };
   var alterado = {};      // id -> estado escolhido nesta sessão
   var respondidoAgora = {};
 
   function estadoDe(x) { return alterado[x.id] || x.estado; }
-  function porTratar(x) { var e = estadoDe(x); return e === 'Novo' || e === 'Em análise'; }
+  function porTratar(x) { var e = estadoDe(x); return e === 'New' || e === 'In review'; }
   function isResp(x) { return x.respondido || !!respondidoAgora[x.id]; }
-  function isNeg(x) { return x.sentimento === 'negativo'; }
+  function isNeg(x) { return x.sentimento === 'negative'; }
 
   function janela() { var ate = 23, desde = 24 - st.periodo; return { desde: desde, ate: ate, pDesde: desde - st.periodo, pAte: desde - 1 }; }
-  function periodoTxt(j) { return st.periodo === 1 ? 'novembro de 2026' : mesTxt(j.desde) + '–' + mesTxt(j.ate, true); }
+  function periodoTxt(j) { return st.periodo === 1 ? 'November 2026' : mesTxt(j.desde, mesDe(j.desde).getFullYear() !== mesDe(j.ate).getFullYear()) + '–' + mesTxt(j.ate, true); }
   function filtrar(desde, ate, area) {
     area = area === undefined ? st.area : area;
     return D.MENCOES.filter(function (x) { return x.m >= desde && x.m <= ate && (!area || x.area === area); });
   }
-  function areaTxt() { return st.area ? 'Área de serviço de ' + st.area : 'Todas as áreas de serviço'; }
+  function areaTxt() { return st.area ? st.area + ' service area' : 'All service areas'; }
 
   function indicadores(rows) {
     var g = rows.filter(function (x) { return x.fonte === 'google'; });
-    var pedem = rows.filter(function (x) { return x.sentimento !== 'positivo'; });
+    var pedem = rows.filter(function (x) { return x.sentimento !== 'positive'; });
     var resp = pedem.filter(isResp);
     var comTempo = resp.filter(function (x) { return x.respondido; });
     return {
@@ -156,12 +156,12 @@
 
   // Variação entre dois valores. bomSobe: true se subir é bom; null se for neutro.
   function delta(a, b, bomSobe, tipo) {
-    if (a == null || b == null || (tipo === 'rel' && b === 0)) return { cls: 'flat', txt: 'sem comparação', v: 0 };
+    if (a == null || b == null || (tipo === 'rel' && b === 0)) return { cls: 'flat', txt: 'no comparison', v: 0 };
     var v = tipo === 'rel' ? (a - b) / b * 100 : a - b;
     var lim = tipo === 'dec' ? 0.05 : 0.5;
-    if (Math.abs(v) < lim) return { cls: 'flat', txt: 'igual', v: 0 };
+    if (Math.abs(v) < lim) return { cls: 'flat', txt: 'no change', v: 0 };
     var sobe = v > 0;
-    var txt = tipo === 'rel' ? nf(Math.abs(v)) + '%' : tipo === 'pp' ? nf(Math.abs(v)) + ' p.p.' : tipo === 'h' ? nf(Math.abs(v)) + ' h' : tipo === 'dec' ? nf(Math.abs(v), 1) : nf(Math.abs(v));
+    var txt = tipo === 'rel' ? nf(Math.abs(v)) + '%' : tipo === 'pp' ? nf(Math.abs(v)) + ' pp' : tipo === 'h' ? nf(Math.abs(v)) + ' h' : tipo === 'dec' ? nf(Math.abs(v), 1) : nf(Math.abs(v));
     return { cls: bomSobe == null ? 'flat' : sobe === bomSobe ? 'good' : 'bad', txt: (sobe ? '↑ ' : '↓ ') + txt, v: v };
   }
 
@@ -169,7 +169,7 @@
   var charts = [];
   function chart(el, opt) {
     if (!el) return null;
-    if (!window.echarts) { el.innerHTML = '<p class="empty-line">O gráfico precisa de ligação à internet para carregar.</p>'; return null; }
+    if (!window.echarts) { el.innerHTML = '<p class="empty-line">The chart needs an internet connection to load.</p>'; return null; }
     var c = echarts.init(el, null, { renderer: 'svg' });
     c.setOption(Object.assign({ animationDuration: REDUZ ? 0 : 700, animationEasing: 'cubicOut', animationDurationUpdate: REDUZ ? 0 : 400, textStyle: { fontFamily: 'Noto Sans, system-ui, sans-serif' } }, opt));
     charts.push(c);
@@ -184,11 +184,11 @@
   function rota() {
     var h = location.hash.replace(/^#\/?/, '');
     var partes = h.split('/');
-    return { p: partes[0] || 'visao-geral', arg: partes[1] ? decodeURIComponent(partes[1]) : null };
+    return { p: partes[0] || 'overview', arg: partes[1] ? decodeURIComponent(partes[1]) : null };
   }
   function irCasos(filtros) {
     st.casos = Object.assign({ q: '', fonte: '', grav: '', tema: '', agrupar: st.casos.agrupar }, filtros || {});
-    if (location.hash === '#/casos') render(); else location.hash = '#/casos';
+    if (location.hash === '#/cases') render(); else location.hash = '#/cases';
   }
   function irArea(nome) { location.hash = '#/areas/' + slug(nome); }
 
@@ -206,17 +206,18 @@
 
 
     var pg = $('page'), migalhas;
-    if (r.p === 'casos') { pg.innerHTML = pgCasos(); migalhas = [['Casos']]; ligarCasos(); }
-    else if (r.p === 'areas' && r.arg) { pg.innerHTML = pgArea(r.arg); migalhas = [['Áreas de serviço', '#/areas'], [r.arg]]; ligarArea(r.arg); }
-    else if (r.p === 'areas') { pg.innerHTML = pgAreas(); migalhas = [['Áreas de serviço']]; ligarAreas(); }
-    else if (r.p === 'fontes') { pg.innerHTML = pgFontes(); migalhas = [['Fontes']]; ligarFontes(); }
-    else { pg.innerHTML = pgVisao(); migalhas = [['Visão geral']]; ligarVisao(); }
+    if (r.p === 'cases') { pg.innerHTML = pgCasos(); migalhas = [['Cases']]; ligarCasos(); }
+    else if (r.p === 'areas' && r.arg) { pg.innerHTML = pgArea(r.arg); migalhas = [['Service areas', '#/areas'], [r.arg]]; ligarArea(r.arg); }
+    else if (r.p === 'areas') { pg.innerHTML = pgAreas(); migalhas = [['Service areas']]; ligarAreas(); }
+    else if (r.p === 'sources') { pg.innerHTML = pgFontes(); migalhas = [['Sources']]; ligarFontes(); }
+    else { pg.innerHTML = pgVisao(); migalhas = [['Overview']]; ligarVisao(); }
     ligarFiltros();
+    melhorarSelects(pg);
 
-    $('crumbs').innerHTML = '<a href="#/visao-geral">Feedback de clientes</a>' + migalhas.map(function (m, i) {
+    $('crumbs').innerHTML = '<a href="#/overview">Customer feedback</a>' + migalhas.map(function (m, i) {
       return '<span class="sep" aria-hidden="true">/</span>' + (m[1] ? '<a href="' + m[1] + '">' + esc(m[0]) + '</a>' : '<span aria-current="page">' + esc(m[0]) + '</span>');
     }).join('');
-    document.title = migalhas[migalhas.length - 1][0] + ' · Colibri · Feedback de clientes';
+    document.title = migalhas[migalhas.length - 1][0] + ' · Colibri · Customer feedback';
 
     var chave = r.p + '/' + (r.arg || '');
     if (chave !== ultimaRota) {
@@ -235,12 +236,12 @@
   // Filtros no cabeçalho de cada página (pílulas)
   function filtros(o) {
     o = o || {};
-    var per = [[1, 'Último mês'], [3, 'Últimos 3 meses'], [6, 'Últimos 6 meses'], [12, 'Últimos 12 meses']];
+    var per = [[1, 'Last month'], [3, 'Last 3 months'], [6, 'Last 6 months'], [12, 'Last 12 months']];
     return '<div class="head-actions">' +
-      '<label class="sr" for="pf-periodo">Período</label><select class="select pill" id="pf-periodo">' + per.map(function (p) { return '<option value="' + p[0] + '"' + (p[0] === st.periodo ? ' selected' : '') + '>' + p[1] + '</option>'; }).join('') + '</select>' +
-      (o.area ? '<label class="sr" for="pf-area">Área de serviço</label><select class="select pill" id="pf-area"><option value="">Todas as áreas</option>' + D.AREAS.map(function (a) { return '<option' + (a === st.area ? ' selected' : '') + '>' + esc(a) + '</option>'; }).join('') + '</select>' : '') +
-      (o.organizar ? '<button type="button" class="btn btn-ghost pill" id="pf-repor"' + (st.editar ? '' : ' hidden') + '>Repor ordem</button><button type="button" class="btn ' + (st.editar ? 'btn-dark' : 'btn-outline') + ' pill" id="pf-organizar" aria-pressed="' + !!st.editar + '">' + ic('grelha') + '<span>' + (st.editar ? 'Concluído' : 'Organizar') + '</span></button>' : '') +
-      (o.exportar ? '<button type="button" class="btn btn-dark pill" id="pf-exportar">' + ic('exportar') + 'Exportar</button>' : '') +
+      '<label class="sr" for="pf-periodo">Period</label><select class="select pill" id="pf-periodo">' + per.map(function (p) { return '<option value="' + p[0] + '"' + (p[0] === st.periodo ? ' selected' : '') + '>' + p[1] + '</option>'; }).join('') + '</select>' +
+      (o.area ? '<label class="sr" for="pf-area">Service area</label><select class="select pill" id="pf-area"><option value="">All areas</option>' + D.AREAS.map(function (a) { return '<option' + (a === st.area ? ' selected' : '') + '>' + esc(a) + '</option>'; }).join('') + '</select>' : '') +
+      (o.organizar ? '<button type="button" class="btn btn-ghost pill" id="pf-repor"' + (st.editar ? '' : ' hidden') + '>Reset order</button><button type="button" class="btn ' + (st.editar ? 'btn-dark' : 'btn-outline') + ' pill" id="pf-organizar" aria-pressed="' + !!st.editar + '">' + ic('grelha') + '<span>' + (st.editar ? 'Done' : 'Arrange') + '</span></button>' : '') +
+      (o.exportar ? '<button type="button" class="btn btn-dark pill" id="pf-exportar">' + ic('exportar') + 'Export</button>' : '') +
       '</div>';
   }
   function ligarFiltros() {
@@ -248,10 +249,12 @@
     if ($('pf-area')) $('pf-area').onchange = function (e) { st.area = e.target.value; st.voz = 0; render(); };
     if ($('pf-exportar')) $('pf-exportar').onclick = function () { window.print(); };
   }
+  // Variation pill: green when it is good news, red when it is bad, grey when neutral
   function pilula(d) {
-    if (d.txt === 'sem comparação') return '<span class="pill-dark flat">–</span>';
-    if (d.txt === 'igual') return '<span class="pill-dark flat">igual</span>';
-    return '<span class="pill-dark tnum">' + d.txt.replace('↑ ', '+').replace('↓ ', '−') + '</span>';
+    if (d.txt === 'no comparison') return '<span class="pill-delta flat">–</span>';
+    if (d.txt === 'no change') return '<span class="pill-delta flat">No change</span>';
+    var cls = d.cls === 'good' ? 'good' : d.cls === 'bad' ? 'bad' : 'neutral';
+    return '<span class="pill-delta ' + cls + ' tnum">' + d.txt.replace('↑ ', '+').replace('↓ ', '−') + '</span>';
   }
 
   function pgVisao() {
@@ -259,9 +262,9 @@
     var rows = filtrar(j.desde, j.ate), prev = filtrar(j.pDesde, j.pAte);
     var k = indicadores(rows), kp = indicadores(prev);
     var neg = rows.filter(isNeg), negPrev = prev.filter(isNeg);
-    var antTxt = st.periodo === 1 ? 'em outubro' : 'em ' + mesTxt(j.pDesde) + '–' + mesTxt(j.pAte);
+    var antTxt = st.periodo === 1 ? 'in October' : 'in ' + mesTxt(j.pDesde) + '–' + mesTxt(j.pAte);
 
-    var h = '<div class="page-head hero"><div><h1>Visão geral</h1><p class="meta">' + esc(areaTxt()) + ' · ' + periodoTxt(j) + '</p></div>' + filtros({ area: true, exportar: true, organizar: true }) + '</div>';
+    var h = '<div class="page-head hero"><div><h1>Overview</h1><p class="meta">' + esc(areaTxt()) + ' · ' + periodoTxt(j) + '</p></div>' + filtros({ area: true, exportar: true, organizar: true }) + '</div>';
 
     // ---- Linha 1: números com gráfico + atividade
     var meses = meses12();
@@ -271,43 +274,43 @@
       return '<div class="mb"><span class="b' + (m >= j.desde ? ' on' : '') + '" style="height:0" data-h="' + Math.max(4, porMes[i] / maxM * 100).toFixed(1) + '%"></span><span class="l">' + (i % 2 === 0 ? mesTxt(m) : '&nbsp;') + '</span></div>';
     }).join('') + '</div>';
     var W = {};
-    W.reclamacoes = '<article class="kpi"><h2>Reclamações</h2><div class="kpi-num"><b class="tnum">' + nf(k.neg) + '</b>' + pilula(delta(k.neg, kp.neg, false, 'rel')) + '</div><p class="kpi-sub tnum">' + nf(kp.neg) + ' ' + antTxt + '</p>' + barras + '</article>';
+    W.reclamacoes = '<article class="kpi"><h2>Complaints</h2><div class="kpi-num"><b class="tnum">' + nf(k.neg) + '</b>' + pilula(delta(k.neg, kp.neg, false, 'rel')) + '</div><p class="kpi-sub tnum">' + nf(kp.neg) + ' ' + antTxt + '</p>' + barras + '</article>';
 
     var porFonte = D.FONTES.map(function (f) { return { f: f, n: rows.filter(function (x) { return x.fonte === f.id; }).length }; });
     var tot = Math.max(1, k.total);
-    W.fontes = '<article class="kpi"><h2>Menções por fonte</h2><div class="kpi-num"><b class="tnum">' + nf(k.total) + '</b>' + pilula(delta(k.total, kp.total, null, 'rel')) + '</div><p class="kpi-sub tnum">' + nf(kp.total) + ' ' + antTxt + '</p>' +
+    W.fontes = '<article class="kpi"><h2>Mentions by source</h2><div class="kpi-num"><b class="tnum">' + nf(k.total) + '</b>' + pilula(delta(k.total, kp.total, null, 'rel')) + '</div><p class="kpi-sub tnum">' + nf(kp.total) + ' ' + antTxt + '</p>' +
       '<div class="split" role="img" aria-label="' + porFonte.map(function (x) { return x.f.curto + ' ' + nf(x.n / tot * 100) + '%'; }).join(', ') + '">' + porFonte.map(function (x) {
         var p = x.n / tot * 100;
         return '<span class="seg" style="flex:0 0 0%;background:' + COR_FONTE[x.f.id] + '" data-flex="' + p.toFixed(2) + '"><b class="tnum">' + (p >= 12 ? nf(p) + '%' : '') + '</b></span>';
       }).join('') + '</div><div class="split-key">' + porFonte.map(function (x) { return '<span><i style="background:' + COR_FONTE[x.f.id] + '"></i>' + esc(x.f.curto) + '</span>'; }).join('') + '</div></article>';
 
-    W.rating = '<article class="kpi kpi-line"><h2>Rating no Google</h2><div class="kpi-num"><b class="tnum">' + (k.rating == null ? '–' : nf(k.rating, 1)) + '</b>' + pilula(delta(k.rating, kp.rating, true, 'dec')) + '</div><p class="kpi-sub tnum">' + nf(k.nReviews) + ' reviews · ' + (kp.rating == null ? 'sem comparação' : nf(kp.rating, 1) + ' ' + antTxt) + '</p><div id="ch-rating" role="img" aria-label="Rating médio no Google por mês, últimos 12 meses"></div></article>';
+    W.rating = '<article class="kpi kpi-line"><h2>Google rating</h2><div class="kpi-num"><b class="tnum">' + (k.rating == null ? '–' : nf(k.rating, 1)) + '</b>' + pilula(delta(k.rating, kp.rating, true, 'dec')) + '</div><p class="kpi-sub tnum">' + nf(k.nReviews) + ' reviews · ' + (kp.rating == null ? 'no comparison' : nf(kp.rating, 1) + ' ' + antTxt) + '</p><div id="ch-rating" role="img" aria-label="Average Google rating by month, last 12 months"></div></article>';
 
-    var recentes = rows.filter(function (x) { return x.sentimento !== 'positivo'; }).sort(function (a, b) { return dataDe(b) - dataDe(a) || (b.id > a.id ? 1 : -1); }).slice(0, 3);
-    W.atividade = '<article class="kpi kpi-act"><div class="kpi-head"><h2>Última atividade</h2><a class="link-u" href="#/casos">Ver todos</a></div><ul class="act">' + recentes.map(function (x) {
-      return '<li><button type="button" data-abrir="' + x.id + '"><span class="src-circle"><img src="' + LOGO[x.canal] + '" alt=""></span><span class="t"><b>' + esc(x.canal) + (x.area ? ' · ' + esc(x.area) : '') + '</b><span>' + quando(x).replace(/^./, function (c) { return c.toUpperCase(); }) + ' · <u>' + esc(tema(x.tema).curto) + '</u></span></span>' + ic('chevron') + '</button></li>';
-    }).join('') + '</ul></article>';
+    rowsVisao = rows;
+    W.atividade = '<article class="kpi kpi-act"><div class="kpi-head"><h2>Latest activity</h2><label class="sr" for="act-fonte">Source</label><select class="select mini" id="act-fonte"><option value="">All</option>' +
+      D.FONTES.map(function (f) { return '<option value="' + f.id + '"' + (st.actFonte === f.id ? ' selected' : '') + '>' + esc(f.curto) + '</option>'; }).join('') + '</select></div>' +
+      '<ul class="act" id="act-list">' + listaAtividade() + '</ul><a class="link-u act-all" href="#/cases">View all cases</a></article>';
 
 
     // ---- Linha 2: áreas, gráfico, temas
     var porArea = D.AREAS.map(function (a) { return { a: a, n: neg.filter(function (x) { return x.area === a; }).length }; }).sort(function (p, q) { return q.n - p.n; });
     var totA = Math.max(1, soma(porArea, function (x) { return x.n; }));
-    var colA = '<section class="col"><div class="col-head"><h2>Áreas de serviço</h2><a class="link-u" href="#/areas">Ver todas</a></div><ul class="dest">' + porArea.slice(0, 5).map(function (x) {
+    var colA = '<section class="col"><div class="col-head"><h2>Service areas</h2><a class="link-u" href="#/areas">View all</a></div><ul class="dest">' + porArea.slice(0, 5).map(function (x) {
       var p = x.n / totA * 100;
       var pal = x.a.split(' ').filter(function (w) { return w.length > 2; });
       var mk = (pal.length > 1 ? pal[0][0] + pal[pal.length - 1][0] : x.a.slice(0, 2)).toUpperCase();
       return '<li><button type="button" data-area="' + esc(x.a) + '"><span class="mk">' + esc(mk) + '</span><span class="t"><span class="row"><span>' + esc(x.a) + '</span><b class="tnum">' + nf(p) + '%</b></span><span class="bar"><span class="fill" style="width:0" data-w="' + p.toFixed(1) + '%"></span></span></span></button></li>';
-    }).join('') + '</ul><p class="col-note">Parte das reclamações com área identificada</p></section>';
+    }).join('') + '</ul><p class="col-note">Share of complaints with a known area</p></section>';
 
-    var colG = '<section class="col"><div class="col-head"><h2>Respostas por mês</h2><div class="legend"><span><i class="dot" style="background:#B62454"></i>Respondidas</span><span><i class="dot" style="background:#F7BDBE"></i>Sem resposta</span></div></div><div id="ch-volume" role="img" aria-label="Reclamações e comentários neutros por mês, respondidos e sem resposta"></div></section>';
+    var colG = '<section class="col"><div class="col-head"><h2>Replies by month</h2><div class="legend"><span><i class="dot" style="background:#2E8B57"></i>Replied</span><span><i class="dot" style="background:#E5807A"></i>No reply</span></div></div><div id="ch-volume" role="img" aria-label="Complaints and neutral comments by month, replied and not replied"></div></section>';
 
     var temas = D.TEMAS.map(function (t) {
       var n = neg.filter(function (x) { return x.tema === t.nome; }).length;
       var np = negPrev.filter(function (x) { return x.tema === t.nome; }).length;
       return { t: t, n: n, d: n - np };
     }).filter(function (x) { return x.n > 0; }).sort(function (a, b) { return b.n - a.n; }).slice(0, 5);
-    var colT = '<section class="col"><div class="col-head"><h2>Temas</h2><a class="link-u" href="#/casos">Ver casos</a></div><table class="tt"><thead><tr><th>Tema</th><th class="num">NPS VoC</th><th class="num">Reclam.</th></tr></thead><tbody>' + temas.map(function (x) {
-      var d = x.d === 0 ? 'igual' : (x.d > 0 ? '↑ ' : '↓ ') + Math.abs(x.d) + ' vs. anterior';
+    var colT = '<section class="col"><div class="col-head"><h2>Topics</h2><a class="link-u" href="#/cases">View cases</a></div><table class="tt"><thead><tr><th>Topic</th><th class="num">VoC NPS</th><th class="num">Compl.</th></tr></thead><tbody>' + temas.map(function (x) {
+      var d = x.d === 0 ? 'No change' : (x.d > 0 ? '↑ ' : '↓ ') + Math.abs(x.d) + ' vs. prev.';
       return '<tr data-tema="' + esc(x.t.nome) + '" tabindex="0"><td><span class="tt-name"><span class="ic-circle">' + ic(x.t.icone) + '</span><span><b>' + esc(x.t.curto) + '</b><span class="' + (x.d > 0 ? 'bad' : x.d < 0 ? 'good' : '') + '">' + d + '</span></span></span></td><td class="num">' + (x.t.nps == null ? '–' : x.t.nps) + '</td><td class="num strong">' + x.n + '</td></tr>';
     }).join('') + '</tbody></table></section>';
     W.areas = colA; W.respostas = colG; W.temas = colT;
@@ -326,10 +329,10 @@
     sinalAtual = combos[0] || null;
 
     outrosSinais = [];
-    var graves = rows.filter(function (x) { return x.gravidade === 'Alta' && porTratar(x); });
+    var graves = rows.filter(function (x) { return x.gravidade === 'High' && porTratar(x); });
     if (graves.length) {
       var antigo = graves.reduce(function (a, b) { return diasAtras(a) > diasAtras(b) ? a : b; });
-      outrosSinais.push({ html: '<b>' + nf(graves.length) + (graves.length === 1 ? ' caso grave' : ' casos graves') + ' por tratar.</b> O mais antigo tem ' + diasAtras(antigo) + ' dias e é sobre ' + esc(antigo.tema.toLowerCase()) + (antigo.area ? ' em ' + esc(antigo.area) : '') + '.', acao: function () { irCasos({ grav: 'Alta' }); } });
+      outrosSinais.push({ html: '<b>' + nf(graves.length) + (graves.length === 1 ? ' high-severity case' : ' high-severity cases') + ' to handle.</b> The oldest is ' + diasAtras(antigo) + ' days old and is about ' + esc(antigo.tema.toLowerCase()) + (antigo.area ? ' at ' + esc(antigo.area) : '') + '.', acao: function () { irCasos({ grav: 'High' }); } });
     }
     var tempos = D.FONTES.map(function (f) {
       var rf = rows.filter(function (x) { return x.fonte === f.id && x.respondido; });
@@ -337,11 +340,11 @@
     }).filter(function (x) { return x.tempo != null; }).sort(function (a, b) { return b.tempo - a.tempo; });
     if (tempos.length > 1) {
       var lento = tempos[0], rapido = tempos[tempos.length - 1];
-      outrosSinais.push({ html: '<b>' + esc(lento.f.nome) + ' demora ' + nf(lento.tempo) + ' h</b> até à primeira resposta, contra ' + nf(rapido.tempo) + ' h em ' + esc(rapido.f.curto) + '.', acao: function () { irCasos({ fonte: lento.f.id }); } });
+      outrosSinais.push({ html: '<b>' + esc(lento.f.nome) + ' take ' + nf(lento.tempo) + ' h</b> to a first reply, against ' + nf(rapido.tempo) + ' h on ' + esc(rapido.f.curto) + '.', acao: function () { irCasos({ fonte: lento.f.id }); } });
     }
     if (combos[1]) {
       var c2 = combos[1];
-      outrosSinais.push({ html: '<b>' + esc(c2.t.curto) + ' em ' + esc(c2.a) + '</b> passou de ' + c2.np + ' para ' + c2.n + ' reclamações.', acao: function () { st.area = c2.a; irCasos({ tema: c2.t.nome }); } });
+      outrosSinais.push({ html: '<b>' + esc(c2.t.curto) + ' at ' + esc(c2.a) + '</b> went from ' + c2.np + ' to ' + c2.n + ' complaints.', acao: function () { st.area = c2.a; irCasos({ tema: c2.t.nome }); } });
     }
     var lista = '<ul class="more-signals">' + outrosSinais.map(function (s, i) { return '<li><button type="button" data-sinal="' + i + '"><span class="txt">' + s.html + '</span>' + ic('chevron') + '</button></li>'; }).join('') + '</ul>';
 
@@ -351,42 +354,53 @@
       var gA = filtrar(j.desde, j.ate, c.a).filter(function (x) { return x.fonte === 'google'; });
       var gP = filtrar(j.pDesde, j.pAte, c.a).filter(function (x) { return x.fonte === 'google'; });
       var dRat = delta(media(gA, function (x) { return x.estrelas; }), media(gP, function (x) { return x.estrelas; }), true, 'dec');
-      var frase = 'As reclamações sobre ' + c.t.nome.toLowerCase() + ' em ' + c.a + ' passaram de ' + c.np + ' para ' + c.n + ' face ao período anterior' +
-        (dRat.cls === 'bad' ? ', e o rating Google da área desceu ' + nf(Math.abs(dRat.v), 1) + ' pontos.' : '.');
-      sig = '<article class="panel signal" aria-labelledby="t-sinal"><div class="signal-top"><span class="spark">' + SPARK + '</span><div><p class="eyebrow">Sinal</p><h3 id="t-sinal">' + esc(c.t.curto) + ' em ' + esc(c.a) + '</h3><p class="lead">' + esc(frase) + '</p></div></div>' +
-        '<div class="signal-chart"><div id="ch-signal" role="img" aria-label="Reclamações por mês sobre ' + esc(c.t.nome.toLowerCase()) + ' em ' + esc(c.a) + ', comparado com a média das áreas"></div>' +
+      var frase = 'Complaints about ' + c.t.nome.toLowerCase() + ' at ' + c.a + ' went from ' + c.np + ' to ' + c.n + ' compared with the previous period' +
+        (dRat.cls === 'bad' ? ', and the area\'s Google rating fell ' + nf(Math.abs(dRat.v), 1) + ' points.' : '.');
+      sig = '<article class="panel signal" aria-labelledby="t-sinal"><div class="signal-top"><span class="spark">' + SPARK + '</span><div><p class="eyebrow">Signal</p><h3 id="t-sinal">' + esc(c.t.curto) + ' at ' + esc(c.a) + '</h3><p class="lead">' + esc(frase) + '</p></div></div>' +
+        '<div class="signal-chart"><div id="ch-signal" role="img" aria-label="Complaints per month about ' + esc(c.t.nome.toLowerCase()) + ' at ' + esc(c.a) + ', compared with the area average"></div>' +
         '<div class="chip-row"><span class="float-chip">' + ic(c.t.icone) + esc(c.t.curto) + '<span class="pt-delta bad tnum">↑ ' + (c.n - c.np) + '</span></span>' +
-        (dRat.cls !== 'flat' ? '<span class="float-chip"><img src="' + LOGO.Google + '" alt="">Rating da área<span class="pt-delta ' + dRat.cls + ' tnum">' + dRat.txt + '</span></span>' : '') + '</div>' +
-        '</div><div class="signal-foot"><span class="legend"><span><i style="background:#B62454;height:3px"></i>' + esc(c.a) + '</span><span><i style="background:repeating-linear-gradient(90deg,#9A9895 0 4px,transparent 4px 7px);height:2px"></i>Média das áreas</span></span>' +
-        '<button type="button" class="link" id="btn-sinal">Ver os ' + c.n + ' casos' + ic('seta') + '</button></div>' + (outrosSinais.length ? lista : '') + '</article>';
+        (dRat.cls !== 'flat' ? '<span class="float-chip"><img src="' + LOGO.Google + '" alt="">Area rating<span class="pt-delta ' + dRat.cls + ' tnum">' + dRat.txt + '</span></span>' : '') + '</div>' +
+        '</div><div class="signal-foot"><span class="legend"><span><i style="background:#C2362E;height:3px"></i>' + esc(c.a) + '</span><span><i style="background:repeating-linear-gradient(90deg,#9A9895 0 4px,transparent 4px 7px);height:2px"></i>Area average</span></span>' +
+        '<button type="button" class="link" id="btn-sinal">View the ' + c.n + ' cases' + ic('seta') + '</button></div>' + (outrosSinais.length ? lista : '') + '</article>';
     } else {
-      sig = '<article class="panel signal"><div class="signal-top"><span class="spark">' + SPARK + '</span><div><p class="eyebrow">Sinais</p><h3>Nenhuma subida relevante</h3><p class="lead">Nenhuma combinação de área e tema subiu de forma clara neste período.</p></div></div>' + (outrosSinais.length ? '<div style="margin-top:18px">' + lista + '</div>' : '') + '</article>';
+      sig = '<article class="panel signal"><div class="signal-top"><span class="spark">' + SPARK + '</span><div><p class="eyebrow">Signals</p><h3>No clear increase</h3><p class="lead">No area and topic combination rose clearly in this period.</p></div></div>' + (outrosSinais.length ? '<div style="margin-top:18px">' + lista + '</div>' : '') + '</article>';
     }
 
-    vozes = rows.filter(function (x) { return isNeg(x) && x.gravidade === 'Alta'; }).sort(function (a, b) { return dataDe(b) - dataDe(a); }).slice(0, 4)
-      .concat(rows.filter(function (x) { return x.sentimento === 'positivo'; }).sort(function (a, b) { return dataDe(b) - dataDe(a); }).slice(0, 2));
+    vozes = rows.filter(function (x) { return isNeg(x) && x.gravidade === 'High'; }).sort(function (a, b) { return dataDe(b) - dataDe(a); }).slice(0, 4)
+      .concat(rows.filter(function (x) { return x.sentimento === 'positive'; }).sort(function (a, b) { return dataDe(b) - dataDe(a); }).slice(0, 2));
     if (st.voz >= vozes.length) st.voz = 0;
     var abertosP = rows.filter(porTratar);
-    var nNovo = abertosP.filter(function (x) { return estadoDe(x) === 'Novo'; }).length;
-    var nGraves = abertosP.filter(function (x) { return x.gravidade === 'Alta'; }).length;
-    var porTratarCard = '<article class="kpi kpi-todo"><h2>Por tratar</h2><div class="kpi-num"><b class="tnum">' + nf(abertosP.length) + '</b>' + (nGraves ? '<span class="pill-dark tnum">' + nGraves + (nGraves === 1 ? ' grave' : ' graves') + '</span>' : '') + '</div>' +
-      '<p class="kpi-sub tnum">' + nNovo + (nNovo === 1 ? ' novo' : ' novos') + ' · ' + (abertosP.length - nNovo) + ' em análise</p><a class="btn btn-dark pill" href="#/casos" style="margin-top:18px;align-self:flex-start">Ver casos' + ic('seta') + '</a></article>';
+    var nNovo = abertosP.filter(function (x) { return estadoDe(x) === 'New'; }).length;
+    var nGraves = abertosP.filter(function (x) { return x.gravidade === 'High'; }).length;
+    var porTratarCard = '<article class="kpi kpi-todo"><h2>To handle</h2><div class="kpi-num"><b class="tnum">' + nf(abertosP.length) + '</b>' + (nGraves ? '<span class="pill-delta bad tnum">' + nGraves + ' high severity</span>' : '') + '</div>' +
+      '<p class="kpi-sub tnum">' + nNovo + ' new · ' + (abertosP.length - nNovo) + ' in review</p><a class="btn btn-dark pill" href="#/cases" style="margin-top:18px;align-self:flex-start">View cases' + ic('seta') + '</a></article>';
     W.sinal = sig; W.voz = '<div id="voz" class="voz-wrap"></div>'; W.portratar = porTratarCard;
-    h += '<p class="edit-hint" id="edit-hint"' + (st.editar ? '' : ' hidden') + '>Arraste os blocos para mudar a ordem. A ordem fica guardada neste browser.</p>' + quadro(W);
+    h += '<p class="edit-hint" id="edit-hint"' + (st.editar ? '' : ' hidden') + '>Drag the blocks to change the order. The order is saved in this browser.</p>' + quadro(W);
     return h;
+  }
+
+  // Latest activity: the three most recent complaints or neutral comments, optionally from one source
+  var rowsVisao = [];
+  function listaAtividade() {
+    var recentes = rowsVisao.filter(function (x) { return x.sentimento !== 'positive' && (!st.actFonte || x.fonte === st.actFonte); })
+      .sort(function (a, b) { return dataDe(b) - dataDe(a) || (b.id > a.id ? 1 : -1); }).slice(0, 3);
+    if (!recentes.length) return '<li class="act-empty">Nothing from this source in the period.</li>';
+    return recentes.map(function (x) {
+      return '<li class="act-item"><div class="t"><b><img src="' + LOGO[x.canal] + '" alt="">' + esc(x.canal) + (x.area ? ' · ' + esc(x.area) : '') + '</b><span>' + esc(tema(x.tema).curto) + ' · ' + quando(x) + '</span></div><button type="button" class="btn-view" data-abrir="' + x.id + '" aria-label="View case ' + x.id + '">View</button></li>';
+    }).join('');
   }
 
   function desenharVoz() {
     var el = $('voz'); if (!el) return;
     var x = vozes[st.voz];
     if (!x) { el.innerHTML = ''; return; }
-    var neg = x.sentimento !== 'positivo';
+    var neg = x.sentimento !== 'positive';
     el.innerHTML = '<figure class="panel voice' + (neg ? ' neg' : '') + '" style="margin:0;flex:1;height:100%">' +
-      '<div class="top"><span class="tag">' + (neg ? 'Voz do cliente · grave' : 'Voz do cliente · elogio') + '</span>' +
-      '<span class="nav-q"><button type="button" class="icon-btn" id="voz-ant" aria-label="Comentário anterior">' + ic('esq') + '</button><button type="button" class="icon-btn" id="voz-seg" aria-label="Comentário seguinte">' + ic('chevron') + '</button></span></div>' +
+      '<div class="top"><span class="tag">' + (neg ? 'Customer voice · high severity' : 'Customer voice · praise') + '</span>' +
+      '<span class="nav-q"><button type="button" class="icon-btn" id="voz-ant" aria-label="Previous comment">' + ic('esq') + '</button><button type="button" class="icon-btn" id="voz-seg" aria-label="Next comment">' + ic('chevron') + '</button></span></div>' +
       '<blockquote>“' + esc(x.texto) + '”</blockquote>' +
       '<figcaption class="who"><span class="src"><img src="' + LOGO[x.canal] + '" alt=""></span><div><b>' + esc(x.canal) + (x.area ? ' · ' + esc(x.area) : '') + '</b><span>' + quando(x) + (x.estrelas ? ' · ' : '') + estrelas(x.estrelas) + '</span></div></figcaption>' +
-      '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:18px"><span class="meta tnum" style="margin:0">' + (st.voz + 1) + ' de ' + vozes.length + '</span><button type="button" class="link" id="voz-abrir">Abrir caso' + ic('seta') + '</button></div></figure>';
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:18px"><span class="meta tnum" style="margin:0">' + (st.voz + 1) + ' of ' + vozes.length + '</span><button type="button" class="link" id="voz-abrir">Open case' + ic('seta') + '</button></div></figure>';
     $('voz-ant').onclick = function () { st.voz = (st.voz - 1 + vozes.length) % vozes.length; desenharVoz(); var q = el.querySelector('blockquote'); q.classList.add('swap'); $('voz-ant').focus(); };
     $('voz-seg').onclick = function () { st.voz = (st.voz + 1) % vozes.length; desenharVoz(); var q = el.querySelector('blockquote'); q.classList.add('swap'); $('voz-seg').focus(); };
     $('voz-abrir').onclick = function () { abrirGaveta(x.id); };
@@ -396,7 +410,8 @@
     ligarQuadro();
     var j = janela();
     $$('.dest [data-area]').forEach(function (b) { b.onclick = function () { irArea(b.dataset.area); }; });
-    $$('.act [data-abrir]').forEach(function (b) { b.onclick = function () { abrirGaveta(b.dataset.abrir); }; });
+    if ($('act-list')) $('act-list').onclick = function (e) { var b = e.target.closest('[data-abrir]'); if (b) abrirGaveta(b.dataset.abrir); };
+    if ($('act-fonte')) $('act-fonte').onchange = function (e) { st.actFonte = e.target.value; var l = $('act-list'); l.innerHTML = listaAtividade(); l.classList.remove('swap'); void l.offsetWidth; l.classList.add('swap'); };
     $$('.tt tr[data-tema]').forEach(function (tr) {
       var go = function () { irCasos({ tema: tr.dataset.tema }); };
       tr.onclick = go; tr.onkeydown = function (e) { if (e.key === 'Enter') go(); };
@@ -415,14 +430,14 @@
     var ult = serie.length - 1; while (ult > 0 && serie[ult] == null) ult--;
     chart($('ch-rating'), {
       grid: { left: 0, right: 0, top: 10, bottom: 22 },
-      tooltip: Object.assign({ trigger: 'axis', valueFormatter: function (v) { return v == null ? '–' : nf(v, 2) + ' de 5'; } }, TOOLTIP),
+      tooltip: Object.assign({ trigger: 'axis', valueFormatter: function (v) { return v == null ? '–' : nf(v, 2) + ' out of 5'; } }, TOOLTIP),
       xAxis: Object.assign({ type: 'category', boundaryGap: false, data: meses.map(function (m) { return mesTxt(m); }) }, EIXO, { axisLabel: { color: '#6E6D6B', fontSize: 11, interval: 2, margin: 8, showMinLabel: false, showMaxLabel: false } }),
       yAxis: { type: 'value', show: false, min: vals.length ? Math.min.apply(null, vals) - 0.6 : 1, max: vals.length ? Math.max.apply(null, vals) + 0.25 : 5 },
       series: [{
         type: 'line', smooth: 0.45, smoothMonotone: 'x', data: serie, symbol: 'none', connectNulls: true,
-        lineStyle: { width: 2.5, color: '#B62454' },
-        areaStyle: window.echarts ? { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: 'rgba(182,36,84,.22)' }, { offset: 1, color: 'rgba(182,36,84,0)' }]) } : null,
-        markPoint: { symbol: 'circle', symbolSize: 11, itemStyle: { color: '#B62454', borderColor: '#FFFFFF', borderWidth: 2.5 }, label: { show: false }, data: [{ coord: [ult, serie[ult]] }] },
+        lineStyle: { width: 2.5, color: '#1E1E1E' },
+        areaStyle: window.echarts ? { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: 'rgba(30,30,30,.12)' }, { offset: 1, color: 'rgba(30,30,30,0)' }]) } : null,
+        markPoint: { symbol: 'circle', symbolSize: 11, itemStyle: { color: '#1E1E1E', borderColor: '#FFFFFF', borderWidth: 2.5 }, label: { show: false }, data: [{ coord: [ult, serie[ult]] }] },
       }],
     });
 
@@ -437,16 +452,16 @@
         xAxis: Object.assign({ type: 'category', boundaryGap: false, data: meses.map(function (m) { return mesTxt(m); }) }, EIXO),
         yAxis: { type: 'value', show: false, min: 0 },
         series: [
-          { name: 'Média das áreas', type: 'line', smooth: 0.4, smoothMonotone: 'x', data: sM, symbol: 'none', lineStyle: { width: 1.5, type: [4, 3], color: '#9A9895' } },
-          { name: c.a, type: 'line', smooth: 0.4, smoothMonotone: 'x', data: sA, symbol: 'circle', symbolSize: 7, showSymbol: false, lineStyle: { width: 2.5, color: '#B62454' }, itemStyle: { color: '#B62454' },
-            areaStyle: window.echarts ? { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: 'rgba(182,36,84,.10)' }, { offset: 1, color: 'rgba(182,36,84,0)' }]) } : null,
-            markPoint: { symbol: 'circle', symbolSize: 10, itemStyle: { color: '#B62454', borderColor: '#FFFFFF', borderWidth: 2 }, label: { show: false }, data: [{ coord: [meses.length - 1, sA[sA.length - 1]] }] } },
+          { name: 'Area average', type: 'line', smooth: 0.4, smoothMonotone: 'x', data: sM, symbol: 'none', lineStyle: { width: 1.5, type: [4, 3], color: '#9A9895' } },
+          { name: c.a, type: 'line', smooth: 0.4, smoothMonotone: 'x', data: sA, symbol: 'circle', symbolSize: 7, showSymbol: false, lineStyle: { width: 2.5, color: '#C2362E' }, itemStyle: { color: '#C2362E' },
+            areaStyle: window.echarts ? { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: 'rgba(194,54,46,.10)' }, { offset: 1, color: 'rgba(194,54,46,0)' }]) } : null,
+            markPoint: { symbol: 'circle', symbolSize: 10, itemStyle: { color: '#C2362E', borderColor: '#FFFFFF', borderWidth: 2 }, label: { show: false }, data: [{ coord: [meses.length - 1, sA[sA.length - 1]] }] } },
         ],
       });
     }
 
     // Respostas por mês: respondidas vs. sem resposta (reclamações e comentários neutros)
-    var pedem = D.MENCOES.filter(function (x) { return x.m >= 12 && x.sentimento !== 'positivo' && (!st.area || x.area === st.area); });
+    var pedem = D.MENCOES.filter(function (x) { return x.m >= 12 && x.sentimento !== 'positive' && (!st.area || x.area === st.area); });
     var resp = meses.map(function (m) { return pedem.filter(function (x) { return x.m === m && isResp(x); }).length; });
     var sem = meses.map(function (m) { return pedem.filter(function (x) { return x.m === m && !isResp(x); }).length; });
     chart($('ch-volume'), {
@@ -456,8 +471,8 @@
       xAxis: Object.assign({ type: 'category', data: meses.map(function (m) { return mesTxt(m); }) }, EIXO),
       yAxis: { type: 'value', splitNumber: 4, axisLabel: { color: '#6E6D6B', fontSize: 11 }, splitLine: { show: false } },
       series: [
-        { name: 'Respondidas', type: 'bar', stack: 't', barWidth: '58%', data: resp, itemStyle: { color: '#B62454', borderRadius: [0, 0, 6, 6] } },
-        { name: 'Sem resposta', type: 'bar', stack: 't', data: sem, itemStyle: { color: '#F7BDBE', borderRadius: [6, 6, 0, 0] } },
+        { name: 'Replied', type: 'bar', stack: 't', barWidth: '58%', data: resp, itemStyle: { color: '#2E8B57', borderRadius: [0, 0, 6, 6] } },
+        { name: 'No reply', type: 'bar', stack: 't', data: sem, itemStyle: { color: '#E5807A', borderRadius: [6, 6, 0, 0] } },
       ],
     });
   }
@@ -467,7 +482,7 @@
   // ======================================================================
   var ORDEM_PADRAO = ['reclamacoes', 'fontes', 'rating', 'atividade', 'areas', 'respostas', 'temas', 'sinal', 'voz', 'portratar'];
   var LARGURA = { reclamacoes: 'w-kpi', fontes: 'w-kpi', rating: 'w-kpi', atividade: 'w-kpi', areas: 'w-areas', respostas: 'w-resp', temas: 'w-temas', sinal: 'w-sinal', voz: 'w-voz', portratar: 'w-todo' };
-  var NOME_BLOCO = { reclamacoes: 'Reclamações', fontes: 'Menções por fonte', rating: 'Rating no Google', atividade: 'Última atividade', areas: 'Áreas de serviço', respostas: 'Respostas por mês', temas: 'Temas', sinal: 'Sinal', voz: 'Voz do cliente', portratar: 'Por tratar' };
+  var NOME_BLOCO = { reclamacoes: 'Complaints', fontes: 'Mentions by source', rating: 'Google rating', atividade: 'Latest activity', areas: 'Service areas', respostas: 'Replies by month', temas: 'Topics', sinal: 'Signal', voz: 'Customer voice', portratar: 'To handle' };
   var CHAVE_ORDEM = 'colibri.visao-geral.ordem';
   function lerOrdem() {
     try {
@@ -488,7 +503,7 @@
     var bt = $('pf-organizar');
     bt.classList.toggle('btn-dark', !!st.editar); bt.classList.toggle('btn-outline', !st.editar);
     bt.setAttribute('aria-pressed', String(!!st.editar));
-    bt.querySelector('span').textContent = st.editar ? 'Concluído' : 'Organizar';
+    bt.querySelector('span').textContent = st.editar ? 'Done' : 'Arrange';
     $('pf-repor').hidden = !st.editar;
     $('edit-hint').hidden = !st.editar;
   }
@@ -515,6 +530,7 @@
       var porId = {}; $$('.w', b).forEach(function (el) { porId[el.dataset.wid] = el; });
       flip(b, function () { ORDEM_PADRAO.forEach(function (k) { b.appendChild(porId[k]); }); }, null);
       guardarOrdem(ORDEM_PADRAO.slice());
+      toast('Original order restored.');
       setTimeout(function () { charts.forEach(function (c) { c.resize(); }); }, 360);
     };
     b.addEventListener('pointerdown', function (e) {
@@ -585,14 +601,14 @@
     var c = st.casos;
     function opt(v, l, sel) { return '<option value="' + esc(v) + '"' + (v === sel ? ' selected' : '') + '>' + esc(l) + '</option>'; }
     var temasPresentes = D.TEMAS.filter(function (t) { return base.some(function (x) { return x.tema === t.nome; }); });
-    return '<div class="page-head"><div><h1>Casos</h1><p class="meta">' + esc(areaTxt()) + ' · ' + periodoTxt(j) + ' · <b class="tnum">' + nf(base.length) + '</b> menções, <b class="tnum">' + nf(abertos) + '</b> por tratar</p></div>' + filtros({ area: true }) + '</div>' +
+    return '<div class="page-head"><div><h1>Cases</h1><p class="meta">' + esc(areaTxt()) + ' · ' + periodoTxt(j) + ' · <b class="tnum">' + nf(base.length) + '</b> mentions, <b class="tnum">' + nf(abertos) + '</b> to handle</p></div>' + filtros({ area: true }) + '</div>' +
       '<div class="toolbar">' +
-      '<div class="input-wrap">' + ic('lupa') + '<label class="sr" for="c-q">Procurar</label><input class="input" id="c-q" type="search" placeholder="Procurar texto, ID ou área" value="' + esc(c.q) + '" autocomplete="off"></div>' +
-      '<label class="sr" for="c-fonte">Fonte</label><select class="select" id="c-fonte">' + opt('', 'Todas as fontes', c.fonte) + D.FONTES.map(function (f) { return opt(f.id, f.curto, c.fonte); }).join('') + '</select>' +
-      '<label class="sr" for="c-grav">Gravidade</label><select class="select" id="c-grav">' + opt('', 'Qualquer gravidade', c.grav) + ['Alta', 'Média', 'Baixa'].map(function (g) { return opt(g, 'Gravidade ' + g.toLowerCase(), c.grav); }).join('') + '</select>' +
-      '<label class="sr" for="c-tema">Tema</label><select class="select" id="c-tema">' + opt('', 'Todos os temas', c.tema) + temasPresentes.map(function (t) { return opt(t.nome, t.nome, c.tema); }).join('') + '</select>' +
+      '<div class="input-wrap">' + ic('lupa') + '<label class="sr" for="c-q">Search</label><input class="input" id="c-q" type="search" placeholder="Search text, ID or area" value="' + esc(c.q) + '" autocomplete="off"></div>' +
+      '<label class="sr" for="c-fonte">Source</label><select class="select" id="c-fonte">' + opt('', 'All sources', c.fonte) + D.FONTES.map(function (f) { return opt(f.id, f.curto, c.fonte); }).join('') + '</select>' +
+      '<label class="sr" for="c-grav">Severity</label><select class="select" id="c-grav">' + opt('', 'Any severity', c.grav) + ['High', 'Medium', 'Low'].map(function (g) { return opt(g, g + ' severity', c.grav); }).join('') + '</select>' +
+      '<label class="sr" for="c-tema">Topic</label><select class="select" id="c-tema">' + opt('', 'All topics', c.tema) + temasPresentes.map(function (t) { return opt(t.nome, t.nome, c.tema); }).join('') + '</select>' +
       '<span class="spacer"></span>' +
-      '<label class="inline" for="c-agrupar">Agrupar por <select class="select" id="c-agrupar">' + [['estado', 'Estado'], ['area', 'Área de serviço'], ['fonte', 'Fonte'], ['tema', 'Tema']].map(function (o) { return opt(o[0], o[1], c.agrupar); }).join('') + '</select></label>' +
+      '<span class="inline">Group by <select class="select" id="c-agrupar" data-label="Group by">' + [['estado', 'Status'], ['area', 'Service area'], ['fonte', 'Source'], ['tema', 'Topic']].map(function (o) { return opt(o[0], o[1], c.agrupar); }).join('') + '</select></span>' +
       '</div><section class="panel"><div class="tbl-wrap" id="casos-tabela"></div></section>';
   }
 
@@ -608,7 +624,7 @@
     var a = st.casos.agrupar;
     if (a === 'estado') return ESTADOS.map(function (e) { return { id: e.id, nome: e.id, cor: e.cor, itens: lista.filter(function (x) { return estadoDe(x) === e.id; }) }; });
     if (a === 'fonte') return D.FONTES.map(function (f) { return { id: f.id, nome: f.nome, cor: COR_FONTE[f.id], itens: lista.filter(function (x) { return x.fonte === f.id; }) }; });
-    if (a === 'area') return D.AREAS.concat(['']).map(function (ar) { return { id: ar || 'sem', nome: ar || 'Área não indicada', cor: '#484747', itens: lista.filter(function (x) { return (x.area || '') === ar; }) }; });
+    if (a === 'area') return D.AREAS.concat(['']).map(function (ar) { return { id: ar || 'sem', nome: ar || 'No area given', cor: '#484747', itens: lista.filter(function (x) { return (x.area || '') === ar; }) }; });
     return D.TEMAS.map(function (t) { return { id: t.nome, nome: t.nome, cor: '#484747', itens: lista.filter(function (x) { return x.tema === t.nome; }) }; })
       .sort(function (p, q) { return q.itens.length - p.itens.length; });
   }
@@ -616,33 +632,33 @@
   function desenharTabela() {
     var el = $('casos-tabela'); if (!el) return;
     var lista = casosFiltrados();
-    if (!lista.length) { el.innerHTML = '<div class="empty"><h3>Nenhum caso com estes filtros</h3><p>Limpe a pesquisa ou escolha outro período no topo.</p></div>'; return; }
+    if (!lista.length) { el.innerHTML = '<div class="empty"><h3>No cases match these filters</h3><p>Clear the search or pick another period at the top.</p></div>'; return; }
     var gs = grupos(lista).filter(function (g) { return g.itens.length; });
     var EST = {}; ESTADOS.forEach(function (e) { EST[e.id] = e; });
     var html = '<table class="tbl cases"><colgroup><col class="c-id"><col class="c-txt"><col class="c-src"><col class="c-area"><col class="c-tema"><col class="c-grav"><col class="c-est"><col class="c-resp"><col class="c-when"></colgroup>' +
-      '<thead><tr><th>ID</th><th>Comentário</th><th>Fonte</th><th>Área</th><th>Tema</th><th>Gravidade</th><th style="text-align:center">Estado</th><th>Responsável</th><th>Recebido</th></tr></thead><tbody>';
+      '<thead><tr><th>ID</th><th>Comment</th><th>Source</th><th>Area</th><th>Topic</th><th>Severity</th><th style="text-align:center">Status</th><th>Owner</th><th>Received</th></tr></thead><tbody>';
     gs.forEach(function (g) {
       var chave = st.casos.agrupar + ':' + g.id;
-      var aberto = st.abertos[chave] != null ? st.abertos[chave] : !(st.casos.agrupar === 'estado' && g.id === 'Fechado');
+      var aberto = st.abertos[chave] != null ? st.abertos[chave] : !(st.casos.agrupar === 'estado' && g.id === 'Closed');
       var n = st.mostrar[chave] || 12;
       g.itens.sort(function (p, q) { return (porTratar(q) - porTratar(p)) || ORDEM_GRAV[p.gravidade] - ORDEM_GRAV[q.gravidade] || dataDe(q) - dataDe(p); });
       html += '<tr class="group-row"><td colspan="9" style="--g:' + g.cor + '"><button type="button" class="group-toggle" data-grupo="' + esc(chave) + '" aria-expanded="' + aberto + '">' + ic('baixo') + esc(g.nome) + '<span class="n tnum">' + g.itens.length + '</span></button></td></tr>';
       if (!aberto) return;
       g.itens.slice(0, n).forEach(function (x) {
         var e = EST[estadoDe(x)], f = fonte(x.fonte), t = tema(x.tema);
-        var gcls = x.gravidade === 'Alta' ? 'alta' : x.gravidade === 'Média' ? 'media' : '';
+        var gcls = x.gravidade === 'High' ? 'alta' : x.gravidade === 'Medium' ? 'media' : '';
         html += '<tr class="row-link' + (st.drawer === x.id ? ' is-open' : '') + '" data-id="' + x.id + '" data-grupo-de="' + esc(chave) + '" tabindex="0" style="--g:' + g.cor + '">' +
           '<td class="id">' + x.id + '</td>' +
           '<td class="txt" title="' + esc(x.texto) + '">' + esc(x.texto) + '</td>' +
           '<td><span class="cell-src"><img class="src-logo" src="' + LOGO[x.canal] + '" alt="">' + esc(x.canal) + '</span></td>' +
-          '<td class="ell">' + (x.area ? esc(x.area) : '<span style="color:var(--faint)">Não indicada</span>') + '</td>' +
+          '<td class="ell">' + (x.area ? esc(x.area) : '<span style="color:var(--faint)">Not given</span>') + '</td>' +
           '<td class="ell" title="' + esc(x.tema) + '">' + esc(t ? t.curto : x.tema) + '</td>' +
           '<td><span class="grav ' + gcls + '"><i></i>' + x.gravidade + '</span></td>' +
           '<td class="state-cell"><span class="state st-' + e.cls + '">' + e.id + '</span></td>' +
           '<td><span class="who-cell">' + avatar(x.responsavel) + '<span>' + esc(x.responsavel) + '</span></span></td>' +
           '<td class="ell tnum" style="color:var(--muted)">' + quando(x) + '</td></tr>';
       });
-      if (g.itens.length > n) html += '<tr class="more-row"><td colspan="9" style="--g:' + g.cor + '"><button type="button" data-mais="' + esc(chave) + '">Mostrar mais ' + Math.min(12, g.itens.length - n) + ' de ' + (g.itens.length - n) + '</button></td></tr>';
+      if (g.itens.length > n) html += '<tr class="more-row"><td colspan="9" style="--g:' + g.cor + '"><button type="button" data-mais="' + esc(chave) + '">Show ' + Math.min(12, g.itens.length - n) + ' more of ' + (g.itens.length - n) + '</button></td></tr>';
     });
     el.innerHTML = html + '</tbody></table>';
 
@@ -672,16 +688,16 @@
   // GAVETA DO CASO
   // ======================================================================
   var MODELOS = {
-    'Instalações sanitárias': 'Lamentamos o estado em que encontrou as instalações sanitárias. Já passámos a informação à equipa da área de serviço para reforçar a limpeza e a verificação ao longo do dia.',
-    'Serviço/Atendimento': 'Lamentamos que o atendimento não tenha estado ao nível que esperamos. Partilhámos o seu comentário com a responsável da área de serviço.',
-    'Alimentação e bebidas': 'Obrigado por nos dizer. A qualidade do que servimos é uma prioridade e já reportámos o caso à equipa de cozinha.',
-    'Preço': 'Percebemos a sua observação sobre os preços. Vamos partilhá-la com a equipa comercial, que revê a oferta e os preços regularmente.',
-    'Caixa e pagamento': 'Lamentamos o incómodo no pagamento. Se houve uma cobrança a mais, envie-nos o talão e os últimos dígitos do cartão por mensagem privada para tratarmos a devolução.',
-    'Reembolsos e faturação': 'Pedimos desculpa pela demora. Para avançarmos já, envie-nos por mensagem privada o número do talão e a data da compra.',
+    'Restrooms': 'We are sorry about the state of the restrooms. We have passed this on to the service area team so they step up cleaning and checks throughout the day.',
+    'Customer service': 'We are sorry the service was not up to our standard. We have shared your comment with the service area manager.',
+    'Food and drinks': 'Thank you for telling us. The quality of what we serve is a priority and we have reported this to the kitchen team.',
+    'Price': 'We understand your point about prices. We will share it with the commercial team, who review our range and prices regularly.',
+    'Checkout and payment': 'We are sorry for the trouble at the till. If you were overcharged, send us the receipt by private message so we can arrange a refund.',
+    'Refunds and invoicing': 'We apologise for the delay. To move this forward, please send us the receipt number and date of purchase by private message.',
   };
   function modelo(x) {
-    if (x.sentimento === 'positivo') return 'Olá. Muito obrigado pelas palavras simpáticas. Vamos partilhá-las com a equipa' + (x.area ? ' de ' + x.area : '') + '.\n\nEquipa Colibri';
-    return 'Olá. ' + (MODELOS[x.tema] || 'Obrigado por partilhar a sua experiência. Já passámos o seu comentário à equipa responsável.') + '\n\nEquipa Colibri';
+    if (x.sentimento === 'positive') return 'Hello. Thank you very much for your kind words. We will share them with the team' + (x.area ? ' at ' + x.area : '') + '.\n\nThe Colibri team';
+    return 'Hello. ' + (MODELOS[x.tema] || 'Thank you for sharing your experience. We have passed your comment on to the team in charge.') + '\n\nThe Colibri team';
   }
   function destino(x) { return x.fonte === 'jira' ? 'Jira' : x.fonte === 'google' ? 'Google Business Profile' : 'Meta Business Suite'; }
 
@@ -704,50 +720,51 @@
     var x = D.MENCOES.filter(function (y) { return y.id === st.drawer; })[0];
     if (!x) { fecharGaveta(); return; }
     var f = fonte(x.fonte), e = estadoDe(x), resp = isResp(x);
-    var gcls = x.gravidade === 'Alta' ? 'alta' : x.gravidade === 'Média' ? 'media' : '';
+    var gcls = x.gravidade === 'High' ? 'alta' : x.gravidade === 'Medium' ? 'media' : '';
     var passos = [
-      { ok: true, ic: 'entrada', t: 'Recebido via ' + x.canal, s: dataLonga(x) },
-      { ok: true, ic: 'etiqueta', t: 'Classificado automaticamente', s: x.tema + ' · gravidade ' + x.gravidade.toLowerCase() },
-      { ok: true, ic: 'pessoaSeta', t: 'Atribuído a ' + x.responsavel, s: x.area ? 'Responsável da área de ' + x.area : 'Sem área indicada, fica com a equipa CX' },
-      resp ? { ok: true, ic: 'conversa', t: 'Respondido', s: respondidoAgora[x.id] ? 'Agora, nesta sessão' : nf(x.horas) + ' h depois de chegar' }
-        : { ok: false, ic: 'relogio', t: 'Resposta por enviar', s: 'À espera há ' + diasAtras(x) + (diasAtras(x) === 1 ? ' dia' : ' dias') },
+      { ok: true, ic: 'entrada', t: 'Received via ' + x.canal, s: dataLonga(x) },
+      { ok: true, ic: 'etiqueta', t: 'Classified automatically', s: x.tema + ' · ' + x.gravidade.toLowerCase() + ' severity' },
+      { ok: true, ic: 'pessoaSeta', t: 'Assigned to ' + x.responsavel, s: x.area ? x.area + ' area manager' : 'No area given, so it stays with the CX team' },
+      resp ? { ok: true, ic: 'conversa', t: 'Replied', s: respondidoAgora[x.id] ? 'Just now, in this session' : nf(x.horas) + ' h after it arrived' }
+        : { ok: false, ic: 'relogio', t: 'Reply not sent yet', s: 'Waiting for ' + diasAtras(x) + (diasAtras(x) === 1 ? ' day' : ' days') },
     ];
-    if (e === 'Fechado') passos.push({ ok: true, ic: 'certo', t: 'Fechado', s: resp ? 'Caso encerrado' : 'Encerrado sem resposta' });
+    if (e === 'Closed') passos.push({ ok: true, ic: 'certo', t: 'Closed', s: resp ? 'Case closed' : 'Closed without a reply' });
 
     var el = $('drawer');
-    el.innerHTML = '<div class="dr-head"><img class="src-logo" src="' + LOGO[x.canal] + '" alt=""><span class="id">' + x.id + '</span><span class="sp"></span><button type="button" class="icon-btn" id="dr-fechar" aria-label="Fechar">' + ic('fechar') + '</button></div>' +
+    el.innerHTML = '<div class="dr-head"><img class="src-logo" src="' + LOGO[x.canal] + '" alt=""><span class="id">' + x.id + '</span><span class="sp"></span><button type="button" class="icon-btn" id="dr-fechar" aria-label="Close">' + ic('fechar') + '</button></div>' +
       '<div class="dr-body"><h2 id="drawer-title">“' + esc(x.texto) + '”</h2><p class="q-meta">' + estrelas(x.estrelas) + '<span>' + esc(f.nome) + (x.fonte === 'redes' ? ' · ' + x.canal : '') + '</span><span aria-hidden="true">·</span><span>' + quando(x) + '</span></p>' +
       '<dl class="kv">' +
-      '<dt><label for="dr-estado">Estado</label></dt><dd><select class="select" id="dr-estado">' + ESTADOS.map(function (s) { return '<option' + (s.id === e ? ' selected' : '') + '>' + s.id + '</option>'; }).join('') + '</select></dd>' +
-      '<dt>Responsável</dt><dd>' + avatar(x.responsavel) + esc(x.responsavel) + '</dd>' +
-      '<dt>Área de serviço</dt><dd>' + (x.area ? '<a class="link" href="#/areas/' + slug(x.area) + '">' + esc(x.area) + '</a>' : '<span style="color:var(--muted)">Não indicada</span>') + '</dd>' +
-      '<dt>Tema</dt><dd>' + esc(x.tema) + '</dd>' +
-      '<dt>Gravidade</dt><dd><span class="grav ' + gcls + '"><i></i>' + x.gravidade + '</span></dd>' +
-      '<dt>Sentimento</dt><dd>' + x.sentimento.charAt(0).toUpperCase() + x.sentimento.slice(1) + '</dd>' +
-      '</dl><h3>Histórico</h3><ol class="steps">' + passos.map(function (p) {
+      '<dt><label for="dr-estado">Status</label></dt><dd><select class="select" id="dr-estado">' + ESTADOS.map(function (s) { return '<option' + (s.id === e ? ' selected' : '') + '>' + s.id + '</option>'; }).join('') + '</select></dd>' +
+      '<dt>Owner</dt><dd>' + avatar(x.responsavel) + esc(x.responsavel) + '</dd>' +
+      '<dt>Service area</dt><dd>' + (x.area ? '<a class="link" href="#/areas/' + slug(x.area) + '">' + esc(x.area) + '</a>' : '<span style="color:var(--muted)">Not given</span>') + '</dd>' +
+      '<dt>Topic</dt><dd>' + esc(x.tema) + '</dd>' +
+      '<dt>Severity</dt><dd><span class="grav ' + gcls + '"><i></i>' + x.gravidade + '</span></dd>' +
+      '<dt>Sentiment</dt><dd>' + x.sentimento.charAt(0).toUpperCase() + x.sentimento.slice(1) + '</dd>' +
+      '</dl><h3>History</h3><ol class="steps">' + passos.map(function (p) {
         return '<li><span class="dot ' + (p.ok ? 'done' : 'todo') + '">' + ic(p.ic) + '</span><div><b>' + esc(p.t) + '</b><span>' + esc(p.s) + '</span></div></li>';
       }).join('') + '</ol>' +
-      (resp ? '' : '<div class="reply"><h3>Resposta</h3><label for="dr-texto">Modelo para ' + esc(x.sentimento === 'positivo' ? 'elogios' : x.tema.toLowerCase()) + '. Edite antes de enviar.</label><textarea id="dr-texto">' + esc(modelo(x)) + '</textarea></div>') +
+      (resp ? '' : '<div class="reply"><h3>Reply</h3><label for="dr-texto">Template for ' + esc(x.sentimento === 'positive' ? 'praise' : x.tema.toLowerCase()) + '. Edit it before sending.</label><textarea id="dr-texto">' + esc(modelo(x)) + '</textarea></div>') +
       '</div>' +
-      (resp ? '' : '<div class="dr-foot"><span class="hint">Envie no ' + destino(x) + '.</span><button type="button" class="btn btn-outline" id="dr-copiar">' + ic('copiar') + 'Copiar</button><button type="button" class="btn btn-primary" id="dr-feito">' + ic('certo') + 'Marcar como respondido</button></div>');
+      (resp ? '' : '<div class="dr-foot"><span class="hint">Send it in ' + destino(x) + '.</span><button type="button" class="btn btn-outline" id="dr-copiar">' + ic('copiar') + 'Copy</button><button type="button" class="btn btn-primary" id="dr-feito">' + ic('certo') + 'Mark as replied</button></div>');
     var trocou = el.dataset.caso && el.dataset.caso !== x.id && el.classList.contains('is-in');
     el.dataset.caso = x.id;
+    melhorarSelects(el);
     entrar(el); entrar($('drawer-scrim'));
     if (trocou) { var bd = el.querySelector('.dr-body'); bd.classList.add('swap'); }
 
     $('dr-fechar').onclick = fecharGaveta;
-    $('dr-estado').onchange = function (ev) { alterado[x.id] = ev.target.value; atualizarDepoisDeMudar(); };
+    $('dr-estado').onchange = function (ev) { alterado[x.id] = ev.target.value; toast(x.id + ' moved to ' + ev.target.value + '.'); atualizarDepoisDeMudar(); };
     if ($('dr-copiar')) $('dr-copiar').onclick = function () {
       var ta = $('dr-texto');
-      var falha = function () { ta.select(); toast('Texto selecionado. Use Ctrl+C para copiar.'); };
-      try { navigator.clipboard.writeText(ta.value).then(function () { toast('Resposta copiada.'); }, falha); } catch (err) { falha(); }
+      var falha = function () { ta.select(); toast('Could not copy. The text is selected, press Ctrl+C.', 'erro'); };
+      try { navigator.clipboard.writeText(ta.value).then(function () { toast('Reply copied.'); }, falha); } catch (err) { falha(); }
     };
-    if ($('dr-feito')) $('dr-feito').onclick = function () { respondidoAgora[x.id] = true; alterado[x.id] = 'Respondido'; toast('Marcado como respondido.'); atualizarDepoisDeMudar(); };
+    if ($('dr-feito')) $('dr-feito').onclick = function () { respondidoAgora[x.id] = true; alterado[x.id] = 'Replied'; toast(x.id + ' marked as replied.'); atualizarDepoisDeMudar(); };
     $$('.kv a', el).forEach(function (a) { a.addEventListener('click', function () { fecharGaveta(); }); });
   }
   function atualizarDepoisDeMudar() {
     var r = rota();
-    if (r.p === 'casos') { desenharTabela(); var n = D.MENCOES.filter(porTratar).length; $('nav-count').textContent = n ? nf(n) : ''; desenharGaveta(); }
+    if (r.p === 'cases') { desenharTabela(); var n = D.MENCOES.filter(porTratar).length; $('nav-count').textContent = n ? nf(n) : ''; desenharGaveta(); }
     else render();
   }
   $('drawer-scrim').onclick = fecharGaveta;
@@ -768,8 +785,8 @@
       return { a: a, info: D.AREA_INFO[a], k: k, kp: kp, top: top };
     }).sort(function (p, q) { return q.k.neg - p.k.neg; });
 
-    var h = '<div class="page-head"><div><h1>Áreas de serviço</h1><p class="meta">' + D.AREAS.length + ' áreas · ' + periodoTxt(j) + ' · ordenadas por número de reclamações</p></div>' + filtros() + '</div>' +
-      '<section class="panel"><div class="tbl-wrap"><table class="tbl" style="min-width:920px"><thead><tr><th>Área</th><th>Responsável</th><th class="num">Menções</th><th class="num">Reclamações</th><th class="num">Rating Google</th><th class="num">Respondidas</th><th class="num">Por tratar</th><th>Tema principal</th></tr></thead><tbody>' +
+    var h = '<div class="page-head"><div><h1>Service areas</h1><p class="meta">' + D.AREAS.length + ' areas · ' + periodoTxt(j) + ' · sorted by number of complaints</p></div>' + filtros() + '</div>' +
+      '<section class="panel"><div class="tbl-wrap"><table class="tbl" style="min-width:920px"><thead><tr><th>Area</th><th>Manager</th><th class="num">Mentions</th><th class="num">Complaints</th><th class="num">Google rating</th><th class="num">Replied</th><th class="num">To handle</th><th>Main topic</th></tr></thead><tbody>' +
       linhas.map(function (l) {
         var d = delta(l.k.neg, l.kp.neg, false, 'abs');
         return '<tr class="row-link" data-area="' + esc(l.a) + '" tabindex="0"><td><span class="strong">' + esc(l.a) + '</span><span class="sub">' + l.info.via + ' · ' + l.info.km + '</span></td>' +
@@ -778,7 +795,7 @@
           '<td class="num"><span class="strong">' + nf(l.k.neg) + '</span> <span class="delta ' + d.cls + '">' + (d.cls === 'flat' ? '' : d.txt) + '</span></td>' +
           '<td class="num">' + (l.k.rating == null ? '–' : nf(l.k.rating, 1)) + '</td>' +
           '<td class="num">' + (l.k.taxa == null ? '–' : nf(l.k.taxa) + '%') + '</td>' +
-          '<td class="num">' + (l.k.abertos ? '<span class="badge pink tnum">' + l.k.abertos + '</span>' : '<span style="color:var(--faint)">0</span>') + '</td>' +
+          '<td class="num">' + (l.k.abertos ? '<span class="badge warn tnum">' + l.k.abertos + '</span>' : '<span style="color:var(--faint)">0</span>') + '</td>' +
           '<td>' + (l.top && l.top[1] ? esc(l.top[0].nome) + ' <span style="color:var(--muted)">(' + l.top[1] + ')</span>' : '–') + '</td></tr>';
       }).join('') + '</tbody></table></div></section>';
 
@@ -787,12 +804,12 @@
     var top = D.TEMAS.map(function (t) { return { t: t, n: neg.filter(function (x) { return x.tema === t.nome; }).length }; }).filter(function (x) { return x.n; }).sort(function (a, b) { return b.n - a.n; }).slice(0, 7);
     var vals = D.AREAS.map(function (a) { return top.map(function (x) { return neg.filter(function (y) { return y.area === a && y.tema === x.t.nome; }).length; }); });
     var vmax = Math.max.apply(null, [1].concat([].concat.apply([], vals)));
-    h += '<div class="sec-head"><h2>Temas por área</h2><span class="heat-key">menos<i></i>mais</span></div><section class="panel panel-body"><div class="tbl-wrap"><table class="heat"><colgroup><col class="first">' + top.map(function () { return '<col>'; }).join('') + '</colgroup><thead><tr><th></th>' +
+    h += '<div class="sec-head"><h2>Topics by area</h2><span class="heat-key">fewer<i></i>more</span></div><section class="panel panel-body"><div class="tbl-wrap"><table class="heat"><colgroup><col class="first">' + top.map(function () { return '<col>'; }).join('') + '</colgroup><thead><tr><th></th>' +
       top.map(function (x) { return '<th title="' + esc(x.t.nome) + '">' + esc(x.t.curto) + '</th>'; }).join('') + '</tr></thead><tbody>' +
       D.AREAS.map(function (a, i) {
         return '<tr><td class="a">' + esc(a) + '</td>' + vals[i].map(function (v) {
           var p = v / vmax;
-          return '<td class="c" style="background:' + (v ? 'rgba(182,36,84,' + (0.07 + p * 0.83).toFixed(2) + ')' : '#FAFAF8') + ';color:' + (p > 0.5 ? '#FFFFFF' : '#5A1516') + '">' + (v || '') + '</td>';
+          return '<td class="c" style="background:' + (v ? 'rgba(30,30,30,' + (0.05 + p * 0.8).toFixed(2) + ')' : '#FAFAF8') + ';color:' + (p > 0.5 ? '#FFFFFF' : '#1E1E1E') + '">' + (v || '') + '</td>';
         }).join('') + '</tr>';
       }).join('') + '</tbody></table></div></section>';
     return h;
@@ -806,7 +823,7 @@
 
   function pgArea(nome) {
     var info = D.AREA_INFO[nome];
-    if (!info) return '<div class="empty"><h3>Área não encontrada</h3><p><a class="link" href="#/areas">Voltar às áreas de serviço</a></p></div>';
+    if (!info) return '<div class="empty"><h3>Area not found</h3><p><a class="link" href="#/areas">Back to service areas</a></p></div>';
     var j = janela();
     var rows = filtrar(j.desde, j.ate, nome), prev = filtrar(j.pDesde, j.pAte, nome);
     var k = indicadores(rows), kp = indicadores(prev);
@@ -816,33 +833,33 @@
 
     var pend = rows.filter(porTratar).sort(function (a, b) { return ORDEM_GRAV[a.gravidade] - ORDEM_GRAV[b.gravidade] || dataDe(b) - dataDe(a); });
 
-    var h = '<div class="area-top"><a class="link back" href="#/areas">' + ic('voltar') + 'Áreas de serviço</a>' + filtros() + '</div><div class="profile"><aside class="profile-side">' +
-      '<div class="area-mark" aria-hidden="true">' + esc(marca) + '</div><h1>' + esc(nome) + '</h1><p class="role">Área de serviço · ' + info.via + ' ' + info.km + '</p>' +
-      '<div class="actions"><button type="button" class="btn btn-primary btn-block" id="a-casos">Ver casos da área</button><a class="btn btn-outline btn-block" href="#/areas">Comparar com as outras áreas</a></div>' +
+    var h = '<div class="area-top"><a class="link back" href="#/areas">' + ic('voltar') + 'Service areas</a>' + filtros() + '</div><div class="profile"><aside class="profile-side">' +
+      '<div class="area-mark" aria-hidden="true">' + esc(marca) + '</div><h1>' + esc(nome) + '</h1><p class="role">Service area · ' + info.via + ' ' + info.km + '</p>' +
+      '<div class="actions"><button type="button" class="btn btn-primary btn-block" id="a-casos">View area cases</button><a class="btn btn-outline btn-block" href="#/areas">Compare with other areas</a></div>' +
       '<dl class="facts">' +
-      '<div><dt>Autoestrada</dt><dd>' + info.via + ', ' + info.km + '</dd></div>' +
-      '<div><dt>Sentido</dt><dd>' + info.sentido + '</dd></div>' +
-      '<div><dt>Responsável</dt><dd>' + avatar(info.gestor) + esc(info.gestor) + '</dd></div>' +
-      '<div><dt>Serviços</dt><dd>' + info.servicos.map(function (s) { return '<span class="badge">' + esc(s) + '</span>'; }).join('') + '</dd></div>' +
-      '<div><dt>Rating Google no período</dt><dd>' + (k.rating == null ? '–' : '<b class="tnum">' + nf(k.rating, 1) + '</b> ' + estrelas(Math.round(k.rating)) + ' <span style="color:var(--muted);font-size:12px">' + k.nReviews + ' reviews</span>') + '</dd></div>' +
+      '<div><dt>Motorway</dt><dd>' + info.via + ', ' + info.km + '</dd></div>' +
+      '<div><dt>Direction</dt><dd>' + info.sentido + '</dd></div>' +
+      '<div><dt>Manager</dt><dd>' + avatar(info.gestor) + esc(info.gestor) + '</dd></div>' +
+      '<div><dt>Services</dt><dd>' + info.servicos.map(function (s) { return '<span class="badge">' + esc(s) + '</span>'; }).join('') + '</dd></div>' +
+      '<div><dt>Google rating in the period</dt><dd>' + (k.rating == null ? '–' : '<b class="tnum">' + nf(k.rating, 1) + '</b> ' + estrelas(Math.round(k.rating)) + ' <span style="color:var(--muted);font-size:12px">' + k.nReviews + ' reviews</span>') + '</dd></div>' +
       '</dl></aside><div class="profile-main">';
 
     // Por tratar
-    h += '<section class="pending" aria-labelledby="t-pend"><div class="pending-head"><h2 id="t-pend">Por tratar</h2><span class="tnum">' + (pend.length ? pend.length + (pend.length === 1 ? ' caso aberto' : ' casos abertos') : 'Nada pendente') + '</span></div>' +
+    h += '<section class="pending" aria-labelledby="t-pend"><div class="pending-head"><h2 id="t-pend">To handle</h2><span class="tnum">' + (pend.length ? pend.length + (pend.length === 1 ? ' open case' : ' open cases') : 'Nothing pending') + '</span></div>' +
       (pend.length ? pend.slice(0, 3).map(function (x) {
-        var gcls = x.gravidade === 'Alta' ? 'alta' : x.gravidade === 'Média' ? 'media' : '';
-        return '<div class="pending-item"><div class="t"><b>' + esc(x.texto) + '</b><span class="m"><img class="src-logo" src="' + LOGO[x.canal] + '" alt="' + esc(x.canal) + '">' + esc(x.tema) + '<span aria-hidden="true">·</span>' + quando(x) + '<span aria-hidden="true">·</span><span class="grav ' + gcls + '"><i></i>' + x.gravidade + '</span></span></div><button type="button" class="btn btn-outline" data-abrir="' + x.id + '">Abrir</button></div>';
-      }).join('') + (pend.length > 3 ? '<div style="padding:10px 12px 4px"><button type="button" class="link" id="a-pend">Ver os ' + pend.length + ' casos abertos' + ic('seta') + '</button></div>' : '')
-        : '<div class="pending-item"><div class="t"><b style="font-weight:500">Todos os casos desta área estão respondidos ou fechados.</b></div></div>') + '</section>';
+        var gcls = x.gravidade === 'High' ? 'alta' : x.gravidade === 'Medium' ? 'media' : '';
+        return '<div class="pending-item"><div class="t"><b>' + esc(x.texto) + '</b><span class="m"><img class="src-logo" src="' + LOGO[x.canal] + '" alt="' + esc(x.canal) + '">' + esc(x.tema) + '<span aria-hidden="true">·</span>' + quando(x) + '<span aria-hidden="true">·</span><span class="grav ' + gcls + '"><i></i>' + x.gravidade + '</span></span></div><button type="button" class="btn btn-outline" data-abrir="' + x.id + '">Open</button></div>';
+      }).join('') + (pend.length > 3 ? '<div style="padding:10px 12px 4px"><button type="button" class="link" id="a-pend">View all ' + pend.length + ' open cases' + ic('seta') + '</button></div>' : '')
+        : '<div class="pending-item"><div class="t"><b style="font-weight:500">Every case in this area is replied or closed.</b></div></div>') + '</section>';
 
     // Números
-    function stat(kx, v, unid, d) { return '<div class="stat"><p class="k">' + kx + '</p><p class="v tnum">' + v + (unid ? '<small>' + unid + '</small>' : '') + '</p><span class="delta ' + d.cls + ' tnum">' + (d.cls === 'flat' && d.txt === 'igual' ? 'igual ao anterior' : d.txt) + '</span></div>'; }
-    h += '<section class="panel"><div class="panel-head"><h2>Resumo</h2><p>' + periodoTxt(j) + ', comparado com o período anterior</p></div><div class="stat-row">' +
-      stat('Menções', nf(k.total), '', delta(k.total, kp.total, null, 'rel')) +
-      stat('Reclamações', nf(k.neg), '', delta(k.neg, kp.neg, false, 'rel')) +
-      stat('Rating Google', k.rating == null ? '–' : nf(k.rating, 1), k.rating == null ? '' : 'de 5', delta(k.rating, kp.rating, true, 'dec')) +
-      stat('Respondidas', k.taxa == null ? '–' : nf(k.taxa), k.taxa == null ? '' : '%', delta(k.taxa, kp.taxa, true, 'pp')) +
-      stat('1.ª resposta', k.tempo == null ? '–' : nf(k.tempo), k.tempo == null ? '' : 'h', delta(k.tempo, kp.tempo, false, 'h')) +
+    function stat(kx, v, unid, d) { return '<div class="stat"><p class="k">' + kx + '</p><p class="v tnum">' + v + (unid ? '<small>' + unid + '</small>' : '') + '</p><span class="delta ' + d.cls + ' tnum">' + (d.cls === 'flat' && d.txt === 'no change' ? 'Same as before' : d.txt) + '</span></div>'; }
+    h += '<section class="panel"><div class="panel-head"><h2>Summary</h2><p>' + periodoTxt(j) + ', compared with the previous period</p></div><div class="stat-row">' +
+      stat('Mentions', nf(k.total), '', delta(k.total, kp.total, null, 'rel')) +
+      stat('Complaints', nf(k.neg), '', delta(k.neg, kp.neg, false, 'rel')) +
+      stat('Google rating', k.rating == null ? '–' : nf(k.rating, 1), k.rating == null ? '' : 'out of 5', delta(k.rating, kp.rating, true, 'dec')) +
+      stat('Replied', k.taxa == null ? '–' : nf(k.taxa), k.taxa == null ? '' : '%', delta(k.taxa, kp.taxa, true, 'pp')) +
+      stat('First reply', k.tempo == null ? '–' : nf(k.tempo), k.tempo == null ? '' : 'h', delta(k.tempo, kp.tempo, false, 'h')) +
       '</div></section>';
 
     // Temas vs. média
@@ -851,20 +868,20 @@
       return { t: t, n: neg.filter(function (x) { return x.tema === t.nome; }).length, avg: todasNeg.filter(function (x) { return x.tema === t.nome; }).length / D.AREAS.length };
     }).filter(function (x) { return x.n || x.avg >= 1; }).sort(function (a, b) { return b.n - a.n; }).slice(0, 6);
     var mx = Math.max.apply(null, [1].concat(temas.map(function (x) { return Math.max(x.n, x.avg); })));
-    h += '<section class="panel"><div class="panel-head"><h2>Reclamações por tema</h2><p>' + periodoTxt(j) + '</p></div><div class="panel-body"><div class="bars">' +
+    h += '<section class="panel"><div class="panel-head"><h2>Complaints by topic</h2><p>' + periodoTxt(j) + '</p></div><div class="panel-body"><div class="bars">' +
       (temas.length ? temas.map(function (x, i) {
-        return '<button type="button" class="bar-row' + (i === 0 && x.n ? ' top' : '') + '" data-tema="' + esc(x.t.nome) + '" aria-label="' + esc(x.t.nome) + ': ' + x.n + ' reclamações, média das áreas ' + nf(x.avg, 1) + '"><span class="lbl">' + esc(x.t.nome) + '</span><span class="track"><span class="fill" style="width:0" data-w="' + (x.n / mx * 100).toFixed(1) + '%"></span><span class="avg" style="left:' + (x.avg / mx * 100).toFixed(1) + '%"></span></span><span class="n tnum">' + x.n + '</span></button>';
-      }).join('') : '<p class="empty-line">Sem reclamações neste período.</p>') +
-      '</div><p class="bar-key"><span><i></i>Média das ' + D.AREAS.length + ' áreas</span></p></div></section>';
+        return '<button type="button" class="bar-row' + (i === 0 && x.n ? ' top' : '') + '" data-tema="' + esc(x.t.nome) + '" aria-label="' + esc(x.t.nome) + ': ' + x.n + ' complaints, area average ' + nf(x.avg, 1) + '"><span class="lbl">' + esc(x.t.nome) + '</span><span class="track"><span class="fill" style="width:0" data-w="' + (x.n / mx * 100).toFixed(1) + '%"></span><span class="avg" style="left:' + (x.avg / mx * 100).toFixed(1) + '%"></span></span><span class="n tnum">' + x.n + '</span></button>';
+      }).join('') : '<p class="empty-line">No complaints in this period.</p>') +
+      '</div><p class="bar-key"><span><i></i>Average of the ' + D.AREAS.length + ' areas</span></p></div></section>';
 
     // Evolução
-    h += '<section class="panel"><div class="panel-head"><h2>Reclamações por mês</h2><p>Últimos 12 meses, comparado com a média das áreas</p></div><div class="panel-body" style="padding-top:8px"><div id="ch-area" role="img" aria-label="Reclamações por mês em ' + esc(nome) + ' e média das áreas"></div></div></section>';
+    h += '<section class="panel"><div class="panel-head"><h2>Complaints by month</h2><p>Last 12 months, compared with the area average</p></div><div class="panel-body" style="padding-top:8px"><div id="ch-area" role="img" aria-label="Complaints by month at ' + esc(nome) + ' and the area average"></div></div></section>';
 
     // Recentes
     var rec = rows.slice().sort(function (a, b) { return dataDe(b) - dataDe(a); }).slice(0, 5);
-    h += '<section class="panel"><div class="panel-head"><h2>Comentários recentes</h2><p>Todas as fontes</p></div>' + (rec.length ? '<ul class="feed-list">' + rec.map(function (x) {
+    h += '<section class="panel"><div class="panel-head"><h2>Recent comments</h2><p>All sources</p></div>' + (rec.length ? '<ul class="feed-list">' + rec.map(function (x) {
       return '<li><button type="button" data-abrir="' + x.id + '"><img src="' + LOGO[x.canal] + '" alt="' + esc(x.canal) + '"><span class="t"><p>' + esc(x.texto) + '</p><span>' + esc(x.tema) + ' · ' + quando(x) + (x.estrelas ? ' · ' : '') + estrelas(x.estrelas) + '</span></span></button></li>';
-    }).join('') + '</ul>' : '<p class="panel-body empty-line">Sem comentários neste período.</p>') + '</section>';
+    }).join('') + '</ul>' : '<p class="panel-body empty-line">No comments in this period.</p>') + '</section>';
 
     return h + '</div></div>';
   }
@@ -883,9 +900,9 @@
       xAxis: Object.assign({ type: 'category', boundaryGap: false, data: meses.map(function (m) { return mesTxt(m); }) }, EIXO),
       yAxis: Object.assign({ type: 'value', min: 0, splitNumber: 3, axisLabel: { color: '#6E6D6B', fontSize: 11 } }, GRELHA),
       series: [
-        { name: 'Média das áreas', type: 'line', smooth: 0.35, smoothMonotone: 'x', data: sM, symbol: 'none', lineStyle: { width: 1.5, type: [4, 3], color: '#9A9895' } },
-        { name: nome, type: 'line', smooth: 0.35, smoothMonotone: 'x', data: sA, symbol: 'circle', symbolSize: 6, lineStyle: { width: 2.5, color: '#B62454' }, itemStyle: { color: '#FFFFFF', borderColor: '#B62454', borderWidth: 2 },
-          areaStyle: window.echarts ? { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: 'rgba(182,36,84,.12)' }, { offset: 1, color: 'rgba(182,36,84,0)' }]) } : null },
+        { name: 'Area average', type: 'line', smooth: 0.35, smoothMonotone: 'x', data: sM, symbol: 'none', lineStyle: { width: 1.5, type: [4, 3], color: '#9A9895' } },
+        { name: nome, type: 'line', smooth: 0.35, smoothMonotone: 'x', data: sA, symbol: 'circle', symbolSize: 6, lineStyle: { width: 2.5, color: '#1E1E1E' }, itemStyle: { color: '#FFFFFF', borderColor: '#1E1E1E', borderWidth: 2 },
+          areaStyle: window.echarts ? { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: 'rgba(30,30,30,.08)' }, { offset: 1, color: 'rgba(30,30,30,0)' }]) } : null },
       ],
     });
   }
@@ -894,39 +911,43 @@
   // FONTES
   // ======================================================================
   var COMO = {
-    google: 'Exportação de reviews do Google Business Profile (.xlsx)',
-    jira: 'Filtro do projeto de reclamações exportado em CSV',
-    redes: 'Exportação da caixa de entrada do Meta Business Suite (.xlsx)',
+    google: 'Google Business Profile reviews export (.xlsx)',
+    jira: 'Complaints project filter exported as CSV',
+    redes: 'Meta Business Suite inbox export (.xlsx)',
   };
   function pgFontes() {
-    var h = '<div class="page-head"><div><h1>Fontes</h1><p class="meta">De onde vêm os dados, como chegam e como são classificados</p></div></div>' +
-      '<section class="panel"><div class="tbl-wrap"><table class="tbl" style="min-width:860px"><thead><tr><th>Fonte</th><th class="num">Registos</th><th>Período coberto</th><th>Última carga</th><th>Dados</th><th>Ligação automática</th></tr></thead><tbody>' +
+    var h = '<div class="page-head"><div><h1>Sources</h1><p class="meta">Where the data comes from, how it arrives and how it is classified</p></div></div>' +
+      '<section class="panel"><div class="tbl-wrap"><table class="tbl" style="min-width:860px"><thead><tr><th>Source</th><th class="num">Records</th><th>Period covered</th><th>Last upload</th><th>Automatic connection</th></tr></thead><tbody>' +
       D.FONTES.map(function (f) {
         var r = D.MENCOES.filter(function (x) { return x.fonte === f.id; });
         return '<tr><td><span class="src-name"><span class="lg">' + logoFonte(f) + '</span><span><span class="strong">' + esc(f.nome) + '</span><span class="sub">' + COMO[f.id] + '</span></span></span></td>' +
-          '<td class="num strong">' + nf(r.length) + '</td><td>dez 2024 – nov 2026</td><td>23 nov 2026</td>' +
-          '<td><span class="badge pink">Fictícios</span></td><td><span class="badge dashed">Fase 2</span></td></tr>';
+          '<td class="num strong">' + nf(r.length) + '</td><td>Dec 2024 – Nov 2026</td><td>23 Nov 2026</td>' +
+          '<td><span class="badge dashed">Phase 2</span></td></tr>';
       }).join('') + '</tbody></table></div></section>';
 
-    h += '<div class="two-col" style="margin-top:20px"><section class="panel"><div class="panel-head"><h2>Carregar ficheiros</h2><p>Exportações das três fontes</p></div><div class="panel-body">' +
-      '<label class="drop" id="drop" for="ficheiros">' + ic('nuvem') + '<b>Arraste os ficheiros para aqui</b><p>Ou clique para escolher. Aceita .xlsx e .csv. Os ficheiros são lidos neste computador e nada é enviado para fora.</p><input id="ficheiros" type="file" multiple accept=".xlsx,.xls,.csv" class="sr"></label>' +
+    h += '<div class="two-col" style="margin-top:20px"><section class="panel"><div class="panel-head"><h2>Upload files</h2><p>Exports from the three sources</p></div><div class="panel-body">' +
+      '<label class="drop" id="drop" for="ficheiros">' + ic('nuvem') + '<b>Drag files here</b><p>Or click to choose. Accepts .xlsx and .csv. Files are read on this computer and nothing is sent anywhere.</p><input id="ficheiros" type="file" multiple accept=".xlsx,.xls,.csv" class="sr"></label>' +
       '<ul class="file-list" id="file-list"></ul></div></section>' +
-      '<section class="panel"><div class="panel-head"><h2>Como classificamos</h2><p>Regras fixas, iguais para todas as fontes</p></div><div class="panel-body"><dl class="rules">' +
-      '<dt>Tema</dt><dd>Os 12 drivers do inquérito VoC, mais Preço e Reembolsos e faturação. O que não encaixa fica em Outros.</dd>' +
-      '<dt>Sentimento</dt><dd>No Google vem das estrelas (1–2 negativo, 3 neutro, 4–5 positivo). No Jira é sempre negativo. Nas redes sociais vem de palavras-chave.</dd>' +
-      '<dt><span class="grav alta"><i></i></span>Gravidade alta</dt><dd>Review de 1 estrela, ou risco legal, de segurança ou reputacional (por exemplo DECO, advogado, burla, acidente).</dd>' +
-      '<dt><span class="grav media"><i></i></span>Gravidade média</dt><dd>Queixa concreta sobre o serviço.</dd>' +
-      '<dt><span class="grav"><i></i></span>Gravidade baixa</dt><dd>Comentário, sugestão ou menção neutra.</dd>' +
+      '<section class="panel"><div class="panel-head"><h2>How we classify</h2><p>Fixed rules, the same for every source</p></div><div class="panel-body"><dl class="rules">' +
+      '<dt>Topic</dt><dd>The 12 drivers of the VoC survey, plus Price and Refunds and invoicing. Anything that does not fit goes to Other.</dd>' +
+      '<dt>Sentiment</dt><dd>On Google it comes from the stars (1–2 negative, 3 neutral, 4–5 positive). On Jira it is always negative. On social media it comes from keywords.</dd>' +
+      '<dt><span class="grav alta"><i></i></span>High severity</dt><dd>A 1-star review, or a legal, safety or reputational risk (for example a consumer association, a lawyer, fraud, an accident).</dd>' +
+      '<dt><span class="grav media"><i></i></span>Medium severity</dt><dd>A specific complaint about the service.</dd>' +
+      '<dt><span class="grav"><i></i></span>Low severity</dt><dd>A comment, a suggestion or a neutral mention.</dd>' +
       '</dl></div></section></div>';
     return h;
   }
   function ligarFontes() {
     var drop = $('drop'), inp = $('ficheiros');
     function listar(files) {
-      var arr = Array.prototype.slice.call(files || []);
+      var todos = Array.prototype.slice.call(files || []);
+      var arr = todos.filter(function (f) { return /\.(xlsx|xls|csv)$/i.test(f.name); });
+      var fora = todos.length - arr.length;
       $('file-list').innerHTML = arr.map(function (f) {
         return '<li><b>' + esc(f.name) + '</b><span class="tnum">' + nf(f.size / 1024, 0) + ' KB</span></li>';
-      }).join('') + (arr.length ? '<li><span>Nesta versão os ficheiros ainda não substituem os dados fictícios. A leitura já está preparada em app/js/importadores e liga-se a seguir.</span></li>' : '');
+      }).join('') + (arr.length ? '<li><span>In this version files are listed but not imported yet. The readers are ready in app/js/importadores and get connected next.</span></li>' : '');
+      if (fora) toast(fora === 1 ? 'One file was skipped. Only .xlsx and .csv are accepted.' : fora + ' files were skipped. Only .xlsx and .csv are accepted.', 'erro');
+      else if (arr.length) toast(arr.length === 1 ? '1 file added.' : arr.length + ' files added.');
     }
     inp.onchange = function () { listar(inp.files); };
     ['dragenter', 'dragover'].forEach(function (ev) { drop.addEventListener(ev, function (e) { e.preventDefault(); drop.classList.add('over'); }); });
@@ -935,10 +956,135 @@
   }
 
   // ======================================================================
+  // MENUS: select-only combobox (W3C ARIA Authoring Practices pattern)
+  // The native <select> stays in the page, hidden, as the source of truth.
+  // The menu sets its value and fires 'change', so the existing handlers keep working.
+  // ======================================================================
+  var ddAberto = null, ddSeq = 0;
+  var CHEV = '<svg class="dd-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>';
+  function textoLabel(sel) {
+    if (sel.dataset.label) return sel.dataset.label;
+    var l = sel.id && document.querySelector('label[for="' + sel.id + '"]');
+    return l ? l.textContent.trim() : '';
+  }
+  function melhorarSelects(root) {
+    $$('select.select', root).forEach(function (sel) {
+      if (sel._dd) return;
+      var id = 'dd' + (++ddSeq), nome = textoLabel(sel);
+      var dd = document.createElement('div');
+      dd.className = 'dd' + (sel.classList.contains('pill') ? ' dd-pill' : '') + (sel.classList.contains('mini') ? ' dd-mini' : '');
+      var btn = document.createElement('div');
+      btn.className = sel.className.replace(/\bdd-native\b/, '') + ' dd-btn';
+      btn.tabIndex = 0;
+      btn.setAttribute('role', 'combobox');
+      btn.setAttribute('aria-haspopup', 'listbox');
+      btn.setAttribute('aria-expanded', 'false');
+      btn.setAttribute('aria-controls', id + '-l');
+      btn.setAttribute('aria-label', nome);
+      var list = document.createElement('div');
+      list.className = 'dd-list'; list.id = id + '-l'; list.tabIndex = -1;
+      list.setAttribute('role', 'listbox'); list.setAttribute('aria-label', nome);
+      list.innerHTML = Array.prototype.map.call(sel.options, function (o, i) {
+        return '<div class="dd-opt" role="option" id="' + id + '-' + i + '" data-i="' + i + '" aria-selected="false"><span>' + esc(o.textContent) + '</span>' + ic('certo').replace('<svg', '<svg class="ck"') + '</div>';
+      }).join('');
+      sel.parentNode.insertBefore(dd, sel);
+      dd.appendChild(btn); dd.appendChild(list); dd.appendChild(sel);
+      sel.classList.add('dd-native'); sel.tabIndex = -1; sel.setAttribute('aria-hidden', 'true');
+      sel._dd = { btn: btn };
+
+      var ativo = sel.selectedIndex, busca = '', tBusca;
+      function opts() { return $$('.dd-opt', list); }
+      function pintar() {
+        var o = sel.options[sel.selectedIndex];
+        btn.innerHTML = '<span class="dd-val">' + esc(o ? o.textContent : '') + '</span>' + CHEV;
+        opts().forEach(function (x, i) { x.classList.toggle('is-value', i === sel.selectedIndex); });
+      }
+      function marcar(i) {
+        var os = opts(); if (!os.length) return;
+        ativo = Math.max(0, Math.min(os.length - 1, i));
+        os.forEach(function (x, k) { x.classList.toggle('active', k === ativo); x.setAttribute('aria-selected', String(k === ativo)); });
+        btn.setAttribute('aria-activedescendant', os[ativo].id);
+        var o = os[ativo];
+        if (o.offsetTop < list.scrollTop) list.scrollTop = o.offsetTop - 6;
+        else if (o.offsetTop + o.offsetHeight > list.scrollTop + list.clientHeight) list.scrollTop = o.offsetTop + o.offsetHeight - list.clientHeight + 6;
+      }
+      function abrir(i) {
+        if (ddAberto && ddAberto.dd !== dd) ddAberto.fechar();
+        if (!dd.classList.contains('open')) {
+          dd.classList.remove('up', 'right');
+          dd.classList.add('open'); btn.setAttribute('aria-expanded', 'true');
+          // Open below unless there is no room; align right if it would leave the screen
+          var r = btn.getBoundingClientRect(), baixo = window.innerHeight - r.bottom, alto = Math.min(320, list.scrollHeight + 16);
+          dd.classList.toggle('up', baixo < alto && r.top > baixo);
+          dd.classList.toggle('right', r.left + Math.max(list.offsetWidth, r.width) > document.documentElement.clientWidth - 8);
+          var host = dd.closest('.w, .page-head, .toolbar, .area-top'); if (host) host.classList.add('dd-host');
+          ddAberto = { dd: dd, fechar: fechar };
+        }
+        marcar(i == null ? sel.selectedIndex : i);
+      }
+      function fechar() {
+        dd.classList.remove('open'); btn.setAttribute('aria-expanded', 'false'); btn.removeAttribute('aria-activedescendant');
+        var host = dd.closest('.dd-host'); if (host) host.classList.remove('dd-host');
+        if (ddAberto && ddAberto.dd === dd) ddAberto = null;
+      }
+      function escolher(i, manterFoco) {
+        var mudou = i !== sel.selectedIndex, tinhaFoco = document.activeElement === btn;
+        sel.selectedIndex = i; pintar(); fechar();
+        if (!mudou) return;
+        sel.dispatchEvent(new Event('change', { bubbles: true }));
+        // If the page was redrawn, put focus back on the same menu
+        if (manterFoco && tinhaFoco && !document.body.contains(btn) && sel.id) {
+          var n = document.getElementById(sel.id); if (n && n._dd) n._dd.btn.focus();
+        }
+      }
+      function procurar(ch) {
+        clearTimeout(tBusca); tBusca = setTimeout(function () { busca = ''; }, 600);
+        busca += ch.toLowerCase();
+        var os = opts(), n = os.length, de = busca.length === 1 ? ativo + 1 : ativo;
+        for (var k = 0; k < n; k++) { var i = (de + k) % n; if (os[i].textContent.trim().toLowerCase().indexOf(busca) === 0) return i; }
+        return null;
+      }
+      btn.addEventListener('keydown', function (e) {
+        var k = e.key, n = sel.options.length, letra = k.length === 1 && k !== ' ' && !e.ctrlKey && !e.metaKey && !e.altKey;
+        if (!dd.classList.contains('open')) {
+          if (k === 'ArrowDown' || k === 'Enter' || k === ' ') { e.preventDefault(); abrir(); }
+          else if (k === 'ArrowUp' || k === 'Home') { e.preventDefault(); abrir(0); }
+          else if (k === 'End') { e.preventDefault(); abrir(n - 1); }
+          else if (letra) { var f = procurar(k); abrir(f == null ? undefined : f); }
+          return;
+        }
+        if (k === 'Enter' || k === ' ' || (k === 'ArrowUp' && e.altKey)) { e.preventDefault(); escolher(ativo, true); }
+        else if (k === 'Tab') escolher(ativo, false);
+        else if (k === 'Escape') { e.preventDefault(); e.stopPropagation(); fechar(); }
+        else if (k === 'ArrowDown') { e.preventDefault(); marcar(ativo + 1); }
+        else if (k === 'ArrowUp') { e.preventDefault(); marcar(ativo - 1); }
+        else if (k === 'Home') { e.preventDefault(); marcar(0); }
+        else if (k === 'End') { e.preventDefault(); marcar(n - 1); }
+        else if (k === 'PageDown') { e.preventDefault(); marcar(ativo + 10); }
+        else if (k === 'PageUp') { e.preventDefault(); marcar(ativo - 10); }
+        else if (letra) { var f2 = procurar(k); if (f2 != null) marcar(f2); }
+      });
+      btn.addEventListener('click', function () { if (dd.classList.contains('open')) fechar(); else abrir(); });
+      btn.addEventListener('blur', function () { setTimeout(function () { if (dd.classList.contains('open') && !dd.contains(document.activeElement) && document.activeElement !== document.body) fechar(); }, 0); });
+      list.addEventListener('mousedown', function (e) { e.preventDefault(); }); // keeps focus on the combobox
+      list.addEventListener('pointermove', function (e) { var o = e.target.closest('.dd-opt'); if (o && +o.dataset.i !== ativo) marcar(+o.dataset.i); });
+      list.addEventListener('click', function (e) { var o = e.target.closest('.dd-opt'); if (o) escolher(+o.dataset.i, true); });
+      pintar();
+    });
+  }
+  document.addEventListener('pointerdown', function (e) { if (ddAberto && !ddAberto.dd.contains(e.target)) ddAberto.fechar(); });
+  window.addEventListener('resize', function () { if (ddAberto) ddAberto.fechar(); });
+
+  // ======================================================================
   // Elementos fixos
   // ======================================================================
-  function toast(msg) {
-    var t = $('toast'); t.textContent = msg; entrar(t);
+  // Toast: green with a tick when something worked, red with a cross when it failed
+  function toast(msg, tipo) {
+    var t = $('toast'), erro = tipo === 'erro';
+    t.classList.toggle('is-error', erro); t.classList.toggle('is-ok', !erro);
+    t.setAttribute('role', erro ? 'alert' : 'status');
+    t.innerHTML = '<span class="toast-ic">' + ic(erro ? 'fechar' : 'certo') + '</span><span>' + esc(msg) + '</span>';
+    entrar(t);
     clearTimeout(t._t); t._t = setTimeout(function () { sair(t, 250); }, 3000);
   }
   function fecharMenu() { $('sidebar').classList.remove('open'); if (!$('scrim').hidden) sair($('scrim'), 250); $('btn-menu').setAttribute('aria-expanded', 'false'); }
@@ -952,10 +1098,10 @@
   render();
 
   // Carregamento real: sai quando o primeiro ecrã está desenhado e os tipos de letra e imagens chegaram.
-  // Para usar noutras esperas (ex.: ler ficheiros): aCarregar('A ler ficheiros') ... pronto().
+  // For other waits (e.g. reading files): aCarregar('Reading files') ... pronto().
   function aCarregar(txt) {
     var l = $('loader');
-    $('loader-txt').textContent = txt || 'A carregar';
+    $('loader-txt').textContent = txt || 'Loading';
     l.classList.remove('saindo'); l.style.opacity = ''; l.hidden = false;
     l.style.animation = 'none'; void l.offsetWidth; l.style.animation = '';
   }
