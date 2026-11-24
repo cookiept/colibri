@@ -34,6 +34,7 @@
     estrela: '<path d="m12 4 2.4 4.9 5.4.8-3.9 3.8.9 5.4L12 16.4l-4.8 2.5.9-5.4-3.9-3.8 5.4-.8L12 4z"/>',
     saco: '<path d="M5 8h14l-1 13H6L5 8z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/>',
     seta: '<path d="M5 12h14m-5-5 5 5-5 5"/>',
+    grelha: '<rect x="4" y="4" width="7" height="7" rx="2"/><rect x="13" y="4" width="7" height="7" rx="2"/><rect x="4" y="13" width="7" height="7" rx="2"/><rect x="13" y="13" width="7" height="7" rx="2"/>',
     exportar: '<path d="M12 15V4m0 0L8 8m4-4 4 4M5 14v5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-5"/>',
     voltar: '<path d="M19 12H5m5 5-5-5 5-5"/>',
     chevron: '<path d="m9 6 6 6-6 6"/>',
@@ -238,6 +239,7 @@
     return '<div class="head-actions">' +
       '<label class="sr" for="pf-periodo">Período</label><select class="select pill" id="pf-periodo">' + per.map(function (p) { return '<option value="' + p[0] + '"' + (p[0] === st.periodo ? ' selected' : '') + '>' + p[1] + '</option>'; }).join('') + '</select>' +
       (o.area ? '<label class="sr" for="pf-area">Área de serviço</label><select class="select pill" id="pf-area"><option value="">Todas as áreas</option>' + D.AREAS.map(function (a) { return '<option' + (a === st.area ? ' selected' : '') + '>' + esc(a) + '</option>'; }).join('') + '</select>' : '') +
+      (o.organizar ? '<button type="button" class="btn btn-ghost pill" id="pf-repor"' + (st.editar ? '' : ' hidden') + '>Repor ordem</button><button type="button" class="btn ' + (st.editar ? 'btn-dark' : 'btn-outline') + ' pill" id="pf-organizar" aria-pressed="' + !!st.editar + '">' + ic('grelha') + '<span>' + (st.editar ? 'Concluído' : 'Organizar') + '</span></button>' : '') +
       (o.exportar ? '<button type="button" class="btn btn-dark pill" id="pf-exportar">' + ic('exportar') + 'Exportar</button>' : '') +
       '</div>';
   }
@@ -259,7 +261,7 @@
     var neg = rows.filter(isNeg), negPrev = prev.filter(isNeg);
     var antTxt = st.periodo === 1 ? 'em outubro' : 'em ' + mesTxt(j.pDesde) + '–' + mesTxt(j.pAte);
 
-    var h = '<div class="page-head hero"><div><h1>Visão geral</h1><p class="meta">' + esc(areaTxt()) + ' · ' + periodoTxt(j) + '</p></div>' + filtros({ area: true, exportar: true }) + '</div>';
+    var h = '<div class="page-head hero"><div><h1>Visão geral</h1><p class="meta">' + esc(areaTxt()) + ' · ' + periodoTxt(j) + '</p></div>' + filtros({ area: true, exportar: true, organizar: true }) + '</div>';
 
     // ---- Linha 1: números com gráfico + atividade
     var meses = meses12();
@@ -268,24 +270,24 @@
     var barras = '<div class="mini-bars" aria-hidden="true">' + meses.map(function (m, i) {
       return '<div class="mb"><span class="b' + (m >= j.desde ? ' on' : '') + '" style="height:0" data-h="' + Math.max(4, porMes[i] / maxM * 100).toFixed(1) + '%"></span><span class="l">' + (i % 2 === 0 ? mesTxt(m) : '&nbsp;') + '</span></div>';
     }).join('') + '</div>';
-    h += '<div class="kpi-grid">';
-    h += '<article class="kpi"><h2>Reclamações</h2><div class="kpi-num"><b class="tnum">' + nf(k.neg) + '</b>' + pilula(delta(k.neg, kp.neg, false, 'rel')) + '</div><p class="kpi-sub tnum">' + nf(kp.neg) + ' ' + antTxt + '</p>' + barras + '</article>';
+    var W = {};
+    W.reclamacoes = '<article class="kpi"><h2>Reclamações</h2><div class="kpi-num"><b class="tnum">' + nf(k.neg) + '</b>' + pilula(delta(k.neg, kp.neg, false, 'rel')) + '</div><p class="kpi-sub tnum">' + nf(kp.neg) + ' ' + antTxt + '</p>' + barras + '</article>';
 
     var porFonte = D.FONTES.map(function (f) { return { f: f, n: rows.filter(function (x) { return x.fonte === f.id; }).length }; });
     var tot = Math.max(1, k.total);
-    h += '<article class="kpi"><h2>Menções por fonte</h2><div class="kpi-num"><b class="tnum">' + nf(k.total) + '</b>' + pilula(delta(k.total, kp.total, null, 'rel')) + '</div><p class="kpi-sub tnum">' + nf(kp.total) + ' ' + antTxt + '</p>' +
+    W.fontes = '<article class="kpi"><h2>Menções por fonte</h2><div class="kpi-num"><b class="tnum">' + nf(k.total) + '</b>' + pilula(delta(k.total, kp.total, null, 'rel')) + '</div><p class="kpi-sub tnum">' + nf(kp.total) + ' ' + antTxt + '</p>' +
       '<div class="split" role="img" aria-label="' + porFonte.map(function (x) { return x.f.curto + ' ' + nf(x.n / tot * 100) + '%'; }).join(', ') + '">' + porFonte.map(function (x) {
         var p = x.n / tot * 100;
         return '<span class="seg" style="flex:0 0 0%;background:' + COR_FONTE[x.f.id] + '" data-flex="' + p.toFixed(2) + '"><b class="tnum">' + (p >= 12 ? nf(p) + '%' : '') + '</b></span>';
       }).join('') + '</div><div class="split-key">' + porFonte.map(function (x) { return '<span><i style="background:' + COR_FONTE[x.f.id] + '"></i>' + esc(x.f.curto) + '</span>'; }).join('') + '</div></article>';
 
-    h += '<article class="kpi kpi-line"><h2>Rating no Google</h2><div class="kpi-num"><b class="tnum">' + (k.rating == null ? '–' : nf(k.rating, 1)) + '</b>' + pilula(delta(k.rating, kp.rating, true, 'dec')) + '</div><p class="kpi-sub tnum">' + nf(k.nReviews) + ' reviews · ' + (kp.rating == null ? 'sem comparação' : nf(kp.rating, 1) + ' ' + antTxt) + '</p><div id="ch-rating" role="img" aria-label="Rating médio no Google por mês, últimos 12 meses"></div></article>';
+    W.rating = '<article class="kpi kpi-line"><h2>Rating no Google</h2><div class="kpi-num"><b class="tnum">' + (k.rating == null ? '–' : nf(k.rating, 1)) + '</b>' + pilula(delta(k.rating, kp.rating, true, 'dec')) + '</div><p class="kpi-sub tnum">' + nf(k.nReviews) + ' reviews · ' + (kp.rating == null ? 'sem comparação' : nf(kp.rating, 1) + ' ' + antTxt) + '</p><div id="ch-rating" role="img" aria-label="Rating médio no Google por mês, últimos 12 meses"></div></article>';
 
     var recentes = rows.filter(function (x) { return x.sentimento !== 'positivo'; }).sort(function (a, b) { return dataDe(b) - dataDe(a) || (b.id > a.id ? 1 : -1); }).slice(0, 3);
-    h += '<article class="kpi kpi-act"><div class="kpi-head"><h2>Última atividade</h2><a class="link-u" href="#/casos">Ver todos</a></div><ul class="act">' + recentes.map(function (x) {
+    W.atividade = '<article class="kpi kpi-act"><div class="kpi-head"><h2>Última atividade</h2><a class="link-u" href="#/casos">Ver todos</a></div><ul class="act">' + recentes.map(function (x) {
       return '<li><button type="button" data-abrir="' + x.id + '"><span class="src-circle"><img src="' + LOGO[x.canal] + '" alt=""></span><span class="t"><b>' + esc(x.canal) + (x.area ? ' · ' + esc(x.area) : '') + '</b><span>' + quando(x).replace(/^./, function (c) { return c.toUpperCase(); }) + ' · <u>' + esc(tema(x.tema).curto) + '</u></span></span>' + ic('chevron') + '</button></li>';
     }).join('') + '</ul></article>';
-    h += '</div>';
+
 
     // ---- Linha 2: áreas, gráfico, temas
     var porArea = D.AREAS.map(function (a) { return { a: a, n: neg.filter(function (x) { return x.area === a; }).length }; }).sort(function (p, q) { return q.n - p.n; });
@@ -308,7 +310,7 @@
       var d = x.d === 0 ? 'igual' : (x.d > 0 ? '↑ ' : '↓ ') + Math.abs(x.d) + ' vs. anterior';
       return '<tr data-tema="' + esc(x.t.nome) + '" tabindex="0"><td><span class="tt-name"><span class="ic-circle">' + ic(x.t.icone) + '</span><span><b>' + esc(x.t.curto) + '</b><span class="' + (x.d > 0 ? 'bad' : x.d < 0 ? 'good' : '') + '">' + d + '</span></span></span></td><td class="num">' + (x.t.nps == null ? '–' : x.t.nps) + '</td><td class="num strong">' + x.n + '</td></tr>';
     }).join('') + '</tbody></table></section>';
-    h += '<div class="row3">' + colA + colG + colT + '</div>';
+    W.areas = colA; W.respostas = colG; W.temas = colT;
 
     // ---- Linha 3: sinal + voz do cliente
     var combos = [];
@@ -369,7 +371,8 @@
     var nGraves = abertosP.filter(function (x) { return x.gravidade === 'Alta'; }).length;
     var porTratarCard = '<article class="kpi kpi-todo"><h2>Por tratar</h2><div class="kpi-num"><b class="tnum">' + nf(abertosP.length) + '</b>' + (nGraves ? '<span class="pill-dark tnum">' + nGraves + (nGraves === 1 ? ' grave' : ' graves') + '</span>' : '') + '</div>' +
       '<p class="kpi-sub tnum">' + nNovo + (nNovo === 1 ? ' novo' : ' novos') + ' · ' + (abertosP.length - nNovo) + ' em análise</p><a class="btn btn-dark pill" href="#/casos" style="margin-top:18px;align-self:flex-start">Ver casos' + ic('seta') + '</a></article>';
-    h += '<div class="story">' + sig + '<div class="side-col"><div id="voz" style="display:flex"></div>' + porTratarCard + '</div></div>';
+    W.sinal = sig; W.voz = '<div id="voz" class="voz-wrap"></div>'; W.portratar = porTratarCard;
+    h += '<p class="edit-hint" id="edit-hint"' + (st.editar ? '' : ' hidden') + '>Arraste os blocos para mudar a ordem. A ordem fica guardada neste browser.</p>' + quadro(W);
     return h;
   }
 
@@ -378,7 +381,7 @@
     var x = vozes[st.voz];
     if (!x) { el.innerHTML = ''; return; }
     var neg = x.sentimento !== 'positivo';
-    el.innerHTML = '<figure class="panel voice' + (neg ? ' neg' : '') + '" style="margin:0;flex:1">' +
+    el.innerHTML = '<figure class="panel voice' + (neg ? ' neg' : '') + '" style="margin:0;flex:1;height:100%">' +
       '<div class="top"><span class="tag">' + (neg ? 'Voz do cliente · grave' : 'Voz do cliente · elogio') + '</span>' +
       '<span class="nav-q"><button type="button" class="icon-btn" id="voz-ant" aria-label="Comentário anterior">' + ic('esq') + '</button><button type="button" class="icon-btn" id="voz-seg" aria-label="Comentário seguinte">' + ic('chevron') + '</button></span></div>' +
       '<blockquote>“' + esc(x.texto) + '”</blockquote>' +
@@ -390,6 +393,7 @@
   }
 
   function ligarVisao() {
+    ligarQuadro();
     var j = janela();
     $$('.dest [data-area]').forEach(function (b) { b.onclick = function () { irArea(b.dataset.area); }; });
     $$('.act [data-abrir]').forEach(function (b) { b.onclick = function () { abrirGaveta(b.dataset.abrir); }; });
@@ -456,6 +460,119 @@
         { name: 'Sem resposta', type: 'bar', stack: 't', data: sem, itemStyle: { color: '#F7BDBE', borderRadius: [6, 6, 0, 0] } },
       ],
     });
+  }
+
+  // ======================================================================
+  // ORGANIZAR A VISÃO GERAL (arrastar blocos, como no ecrã do iPhone)
+  // ======================================================================
+  var ORDEM_PADRAO = ['reclamacoes', 'fontes', 'rating', 'atividade', 'areas', 'respostas', 'temas', 'sinal', 'voz', 'portratar'];
+  var LARGURA = { reclamacoes: 'w-kpi', fontes: 'w-kpi', rating: 'w-kpi', atividade: 'w-kpi', areas: 'w-areas', respostas: 'w-resp', temas: 'w-temas', sinal: 'w-sinal', voz: 'w-voz', portratar: 'w-todo' };
+  var NOME_BLOCO = { reclamacoes: 'Reclamações', fontes: 'Menções por fonte', rating: 'Rating no Google', atividade: 'Última atividade', areas: 'Áreas de serviço', respostas: 'Respostas por mês', temas: 'Temas', sinal: 'Sinal', voz: 'Voz do cliente', portratar: 'Por tratar' };
+  var CHAVE_ORDEM = 'colibri.visao-geral.ordem';
+  function lerOrdem() {
+    try {
+      var o = JSON.parse(localStorage.getItem(CHAVE_ORDEM));
+      if (Array.isArray(o) && o.length === ORDEM_PADRAO.length && ORDEM_PADRAO.every(function (k) { return o.indexOf(k) >= 0; })) return o;
+    } catch (e) { /* sem acesso ao armazenamento: usa a ordem de origem */ }
+    return ORDEM_PADRAO.slice();
+  }
+  function guardarOrdem(o) { try { localStorage.setItem(CHAVE_ORDEM, JSON.stringify(o)); } catch (e) { /* ignora */ } }
+  function quadro(W) {
+    return '<div class="board' + (st.editar ? ' editing' : '') + '" id="board">' + lerOrdem().map(function (k, i) {
+      return '<div class="w ' + LARGURA[k] + '" data-wid="' + k + '" style="--i:' + i + '" aria-label="' + NOME_BLOCO[k] + '">' + W[k] + '</div>';
+    }).join('') + '</div>';
+  }
+  function aplicarEdicao() {
+    var b = $('board'); if (!b) return;
+    b.classList.toggle('editing', !!st.editar);
+    var bt = $('pf-organizar');
+    bt.classList.toggle('btn-dark', !!st.editar); bt.classList.toggle('btn-outline', !st.editar);
+    bt.setAttribute('aria-pressed', String(!!st.editar));
+    bt.querySelector('span').textContent = st.editar ? 'Concluído' : 'Organizar';
+    $('pf-repor').hidden = !st.editar;
+    $('edit-hint').hidden = !st.editar;
+  }
+  function flip(b, mudar, fixo) {
+    var els = $$('.w', b).filter(function (x) { return x !== fixo; });
+    var antes = els.map(function (el) { return el.getBoundingClientRect(); });
+    mudar();
+    els.forEach(function (el, i) {
+      el.style.transition = 'none'; el.style.transform = '';
+      var n = el.getBoundingClientRect();
+      var dx = antes[i].left - n.left, dy = antes[i].top - n.top;
+      if (!dx && !dy) { el.style.transition = ''; return; }
+      el.style.transform = 'translate(' + dx + 'px,' + dy + 'px)';
+      void el.offsetWidth;
+      el.style.transition = REDUZ ? 'none' : 'transform .34s cubic-bezier(.2, .8, .2, 1)';
+      el.style.transform = '';
+    });
+  }
+  var arrasto = null;
+  function ligarQuadro() {
+    var b = $('board'); if (!b) return;
+    $('pf-organizar').onclick = function () { st.editar = !st.editar; aplicarEdicao(); };
+    $('pf-repor').onclick = function () {
+      var porId = {}; $$('.w', b).forEach(function (el) { porId[el.dataset.wid] = el; });
+      flip(b, function () { ORDEM_PADRAO.forEach(function (k) { b.appendChild(porId[k]); }); }, null);
+      guardarOrdem(ORDEM_PADRAO.slice());
+      setTimeout(function () { charts.forEach(function (c) { c.resize(); }); }, 360);
+    };
+    b.addEventListener('pointerdown', function (e) {
+      var w = e.target.closest('.w');
+      if (!w || e.button > 0) return;
+      if (!st.editar) {
+        // Carregar sem soltar durante meio segundo entra no modo de organizar
+        var sx = e.clientX, sy = e.clientY;
+        var t = setTimeout(function () { st.editar = true; aplicarEdicao(); limpar(); }, 550);
+        var mv = function (ev) { if (Math.abs(ev.clientX - sx) + Math.abs(ev.clientY - sy) > 8) limpar(); };
+        var limpar = function () { clearTimeout(t); window.removeEventListener('pointermove', mv); window.removeEventListener('pointerup', limpar); window.removeEventListener('pointercancel', limpar); };
+        window.addEventListener('pointermove', mv); window.addEventListener('pointerup', limpar); window.addEventListener('pointercancel', limpar);
+        return;
+      }
+      e.preventDefault();
+      var r = w.getBoundingClientRect();
+      arrasto = { b: b, w: w, ox: e.clientX - r.left, oy: e.clientY - r.top, x: e.clientX, y: e.clientY, ultimo: null };
+      w.style.transition = 'none';
+      w.classList.add('dragging');
+      posicionar();
+      window.addEventListener('pointermove', mover);
+      window.addEventListener('pointerup', largar);
+      window.addEventListener('pointercancel', largar);
+    });
+  }
+  function posicionar() {
+    var a = arrasto, br = a.b.getBoundingClientRect();
+    var tx = a.x - a.ox - br.left - a.w.offsetLeft, ty = a.y - a.oy - br.top - a.w.offsetTop;
+    a.w.style.transform = 'translate(' + tx + 'px,' + ty + 'px)';
+  }
+  function mover(e) {
+    var a = arrasto; if (!a) return;
+    a.x = e.clientX; a.y = e.clientY;
+    posicionar();
+    var br = a.b.getBoundingClientRect(), alvo = null;
+    $$('.w', a.b).forEach(function (el) {
+      if (el === a.w) return;
+      var l = br.left + el.offsetLeft, t = br.top + el.offsetTop;
+      if (a.x >= l && a.x <= l + el.offsetWidth && a.y >= t && a.y <= t + el.offsetHeight) alvo = el;
+    });
+    if (!alvo) { a.ultimo = null; return; }
+    if (alvo === a.ultimo) return;
+    a.ultimo = alvo;
+    var irmaos = $$('.w', a.b);
+    var depois = irmaos.indexOf(a.w) < irmaos.indexOf(alvo);
+    flip(a.b, function () { a.b.insertBefore(a.w, depois ? alvo.nextSibling : alvo); }, a.w);
+    posicionar();
+  }
+  function largar() {
+    var a = arrasto; if (!a) return;
+    arrasto = null;
+    window.removeEventListener('pointermove', mover);
+    window.removeEventListener('pointerup', largar);
+    window.removeEventListener('pointercancel', largar);
+    a.w.style.transition = REDUZ ? 'none' : 'transform .3s cubic-bezier(.2, .8, .2, 1)';
+    a.w.style.transform = '';
+    setTimeout(function () { a.w.classList.remove('dragging'); a.w.style.transition = ''; charts.forEach(function (c) { c.resize(); }); }, REDUZ ? 0 : 310);
+    guardarOrdem($$('.w', a.b).map(function (el) { return el.dataset.wid; }));
   }
 
   // ======================================================================
@@ -635,7 +752,7 @@
   }
   $('drawer-scrim').onclick = fecharGaveta;
   document.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape') { if (st.drawer) fecharGaveta(); else fecharMenu(); }
+    if (e.key === 'Escape') { if (st.drawer) fecharGaveta(); else if (st.editar && $('board')) { st.editar = false; aplicarEdicao(); } else fecharMenu(); }
   });
 
   // ======================================================================
@@ -833,4 +950,25 @@
   window.addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(function () { charts.forEach(function (c) { c.resize(); }); }, 80); });
   window.addEventListener('hashchange', render);
   render();
+
+  // Carregamento real: sai quando o primeiro ecrã está desenhado e os tipos de letra e imagens chegaram.
+  // Para usar noutras esperas (ex.: ler ficheiros): aCarregar('A ler ficheiros') ... pronto().
+  function aCarregar(txt) {
+    var l = $('loader');
+    $('loader-txt').textContent = txt || 'A carregar';
+    l.classList.remove('saindo'); l.style.opacity = ''; l.hidden = false;
+    l.style.animation = 'none'; void l.offsetWidth; l.style.animation = '';
+  }
+  function pronto() {
+    var l = $('loader');
+    if (!l || l.hidden) return;
+    var op = +getComputedStyle(l).opacity;
+    if (!op) { l.hidden = true; return; }   // nunca chegou a aparecer: sai sem animação
+    l.style.opacity = op; void l.offsetWidth; l.classList.add('saindo');
+    setTimeout(function () { l.hidden = true; l.classList.remove('saindo'); l.style.opacity = ''; }, REDUZ ? 0 : 320);
+  }
+  window.colibriCarregamento = { mostrar: aCarregar, esconder: pronto };
+  var carregou = new Promise(function (res) { if (document.readyState === 'complete') res(); else window.addEventListener('load', res); });
+  var letras = document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve();
+  Promise.all([carregou, letras]).then(pronto, pronto);
 })();

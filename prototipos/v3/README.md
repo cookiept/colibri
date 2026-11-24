@@ -20,11 +20,23 @@ Abrir `index.html` no browser (funciona com duplo clique, sem servidor). Também
 
 O período e a área de serviço escolhidos no topo aplicam-se a todos os ecrãs.
 
+## Organizar a Visão geral
+
+- Carregar em **Organizar**, ou manter o dedo/rato premido num bloco, para entrar em modo de edição (os blocos tremem).
+- Arrastar um bloco para o lugar de outro.
+- **Concluído** ou `Esc` para sair. **Repor ordem** volta à ordem original.
+- A ordem fica guardada neste browser (`localStorage`).
+
+## Carregamento
+
+O ecrã com o colibri a bater as asas só aparece se o carregamento real (scripts, tipos de letra, imagens) demorar mais de 0,3 s. Não há tempo de espera artificial.
+
 ## Referências
 
 - Organização: navegação lateral agrupada e base neutra (kits shadcn/ui), tabela agrupada com estados a cheio (monday.com), ficha de entidade com ações pendentes em destaque (aplicações de RH).
 - Componentes: sinal que liga causa e efeito e citação em serif (Officevibe); cartões tingidos com número, variação em pílula escura e mini gráfico, filtros e botões em pílula (dashboards de e-commerce).
 - Movimento: painel do caso desliza da direita, páginas entram com fade, barras e anel crescem a partir de zero. Respeita `prefers-reduced-motion`.
+- Gráficos: ECharts 5.5 (SVG). Barras simples, barra dividida e barras de temas em HTML/CSS.
 - Cores das fontes lisas: Google azul, Jira roxo, redes sociais rosa.
 
 ## Ficheiros
