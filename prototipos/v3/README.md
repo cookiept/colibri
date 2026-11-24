@@ -12,7 +12,7 @@ Abrir `index.html` no browser (funciona com duplo clique, sem servidor). Também
 
 | Ecrã | Endereço | O que tem |
 | --- | --- | --- |
-| Visão geral | `#/visao-geral` | Rating Google em anel e evolução; temas "Onde focar" e "A correr bem"; sinal principal (área × tema) com a média das áreas; voz do cliente; áreas com mais reclamações; reclamações por fonte |
+| Visão geral | `#/visao-geral` | Cartões com número, variação e gráfico (reclamações, menções por fonte, rating Google), última atividade; áreas de serviço, respostas por mês e temas; sinal principal (área × tema) com a média das áreas, voz do cliente e casos por tratar |
 | Casos | `#/casos` | Tabela agrupada por estado, área, fonte ou tema; pesquisa e filtros; painel lateral com histórico, mudança de estado e modelo de resposta |
 | Áreas de serviço | `#/areas` | Tabela comparativa das áreas e mapa de calor área × tema |
 | Ficha da área | `#/areas/<nome>` | Ficha (autoestrada, responsável, serviços), casos por tratar, resumo com variação, temas face à média das áreas, evolução mensal, comentários recentes |
@@ -23,7 +23,9 @@ O período e a área de serviço escolhidos no topo aplicam-se a todos os ecrãs
 ## Referências
 
 - Organização: navegação lateral agrupada e base neutra (kits shadcn/ui), tabela agrupada com estados a cheio (monday.com), ficha de entidade com ações pendentes em destaque (aplicações de RH).
-- Componentes: sinal que liga causa e efeito, filas de temas com chips e citação em serif (Officevibe).
+- Componentes: sinal que liga causa e efeito e citação em serif (Officevibe); cartões tingidos com número, variação em pílula escura e mini gráfico, filtros e botões em pílula (dashboards de e-commerce).
+- Movimento: painel do caso desliza da direita, páginas entram com fade, barras e anel crescem a partir de zero. Respeita `prefers-reduced-motion`.
+- Cores das fontes lisas: Google azul, Jira roxo, redes sociais rosa.
 
 ## Ficheiros
 
