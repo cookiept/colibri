@@ -307,7 +307,7 @@
     }).join('') + '</ul><p class="col-note">Share of complaints with a known area</p></section>';
 
     snap.porArea = porArea;
-    var colG = '<section class="col"><div class="col-head"><h2>Replies by month</h2><div class="legend"><span><i class="dot" style="background:#2E8B57"></i>Replied</span><span><i class="dot" style="background:#E5807A"></i>No reply</span></div></div><div id="ch-volume" role="img" aria-label="Complaints and neutral comments by month, replied and not replied"></div></section>';
+    var colG = '<section class="col"><div class="col-head"><h2>Replies by month</h2><div class="legend"><span><i class="dot" style="background:#2E8B57"></i>Replied</span><span><i class="dot" style="background:#E5807A"></i>No reply</span></div></div><div class="chart-fill"><div id="ch-volume" role="img" aria-label="Complaints and neutral comments by month, replied and not replied"></div></div></section>';
 
     var temas = D.TEMAS.map(function (t) {
       var n = neg.filter(function (x) { return x.tema === t.nome; }).length;

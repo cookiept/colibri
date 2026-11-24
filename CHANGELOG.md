@@ -13,6 +13,7 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-PT/1.1.0/).
 - v3: variações a verde quando são boas e a vermelho quando são más; rosa Colibri só na marca e na ação principal; aviso de dados fictícios retirado do ecrã.
 
 ### Corrigido
+- v3: o gráfico "Replies by month" ocupa a altura toda do bloco e acaba alinhado com Service areas e Topics.
 - v3: a página ocupa toda a largura do ecrã (sem bloco branco à direita).
 
 ### Adicionado

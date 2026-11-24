@@ -843,3 +843,11 @@ svg { flex: none; }
   .signal h3 { font-size: 20px; }
   .areas-toolbar .input-wrap { max-width: none; flex-basis: 100%; }
 }
+
+/* ===================== v3.9: "Replies by month" fills its block ===================== */
+/* The chart takes the full height of the row, so its baseline lines up with the bottom of the
+   Service areas and Topics blocks next to it. The chart sits absolutely inside .chart-fill so it
+   never adds height of its own to the row. */
+.w-resp > .col { display: flex; flex-direction: column; }
+.w-resp .chart-fill { flex: 1; position: relative; min-height: 260px; }
+.w-resp .chart-fill #ch-volume { position: absolute; inset: 0; height: auto; }
