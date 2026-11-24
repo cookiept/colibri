@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="pt-PT">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Colibri · Resultados de feedback (protótipo v2)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+Display:wght@400;500;600&family=Noto+Sans:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="css/prototipo.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.5.0/echarts.min.js"></script>
+</head>
+<body>
+
+<header class="nav">
+  <div class="wrap">
+    <img class="logo" src="assets/colibri-logo.png" alt="Colibri">
+    <nav class="tabs" role="tablist" aria-label="Secções">
+      <button class="tab" role="tab" id="tab-resultados" aria-selected="true" aria-controls="view-resultados">Resultados</button>
+      <button class="tab" role="tab" id="tab-comentarios" aria-selected="false" aria-controls="view-comentarios">Comentários<span class="count tnum" id="tab-count"></span></button>
+    </nav>
+    <div class="right">
+      <button class="btn btn-ghost btn-sm" id="btn-exportar" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0 4-4m-4 4-4-4M5 21h14"/></svg><span>Exportar</span>
+      </button>
+      <button class="btn btn-primary btn-sm" id="btn-ficheiros" type="button" aria-expanded="false" aria-controls="painel-ficheiros">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21V9m0 0-4 4m4-4 4 4M5 3h14"/></svg><span>Ficheiros</span>
+      </button>
+    </div>
+  </div>
+  <div class="ficheiros" id="painel-ficheiros" hidden>
+    <h3>Ficheiros carregados</h3>
+    <p>Lidos neste computador. Nada é enviado para fora.</p>
+    <div id="lista-ficheiros"></div>
+  </div>
+</header>
+
+<main>
+  <!-- ================= RESULTADOS ================= -->
+  <section id="view-resultados" role="tabpanel" aria-labelledby="tab-resultados">
+    <div class="wrap">
+      <div class="page-head">
+        <div>
+          <p class="eyebrow" id="eyebrow"></p>
+          <h1>Feedback de clientes<span class="dados-ficticios">Dados fictícios</span></h1>
+        </div>
+        <div class="filters">
+          <div class="segmented" role="group" aria-label="Período" id="periodo">
+            <button type="button" data-p="1" aria-pressed="false">1 mês</button>
+            <button type="button" data-p="3" aria-pressed="true">3 meses</button>
+            <button type="button" data-p="6" aria-pressed="false">6 meses</button>
+            <button type="button" data-p="12" aria-pressed="false">12 meses</button>
+          </div>
+          <label class="sr" for="f-area">Área de serviço</label>
+          <select class="select" id="f-area"></select>
+        </div>
+      </div>
+      <div class="sources" id="sources" aria-label="Fontes"></div>
+
+      <div class="grid g-hero">
+        <article class="card">
+          <div class="score">
+            <div>
+              <div class="ring" id="ring"></div>
+              <div class="verdict"><b id="verdict"></b><span class="trend" id="trend"></span></div>
+            </div>
+            <div class="score-chart">
+              <h2>Rating médio no Google</h2>
+              <p>Média das estrelas por mês, últimos 12 meses</p>
+              <div id="ch-rating" role="img" aria-label="Evolução do rating médio no Google"></div>
+            </div>
+          </div>
+        </article>
+        <aside class="summary" aria-labelledby="summary-title">
+          <span class="tag"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19h16M7 15l3-4 3 2 4-6"/></svg>Resumo do período</span>
+          <h2 id="summary-title"></h2>
+          <ul id="summary"></ul>
+          <p class="foot">Gerado por regras fixas a partir dos ficheiros carregados.</p>
+        </aside>
+      </div>
+
+      <div class="grid g-4" style="margin-top:20px" id="metrics"></div>
+
+      <div class="section-title"><h2>Sinais</h2><p>O que mudou e merece atenção</p></div>
+      <div class="grid g-3" id="signals"></div>
+
+      <div class="grid g-2" style="margin-top:36px">
+        <article class="card">
+          <div class="card-head"><h2>Onde focar</h2><p>Temas com mais reclamações</p></div>
+          <div class="focus-list" id="focus"></div>
+        </article>
+        <article class="card">
+          <div class="card-head"><h2>Onde está a correr bem</h2><p>Temas a melhorar face ao período anterior</p></div>
+          <div class="focus-list" id="thriving"></div>
+        </article>
+      </div>
+
+      <div class="section-title"><h2>De onde vêm</h2><p id="volume-sub"></p></div>
+      <div class="grid g-chart">
+        <article class="card">
+          <div class="card-head"><h2>Reclamações por mês</h2><div class="legend" id="legend"></div></div>
+          <div id="ch-volume" role="img" aria-label="Reclamações por mês e por fonte"></div>
+          <p style="font-size:12px;color:var(--muted);margin-top:8px">Meses fora do período escolhido a cinzento.</p>
+        </article>
+        <article class="card">
+          <div class="card-head"><h2>Por fonte</h2><p id="por-fonte-periodo"></p></div>
+          <div id="por-fonte"></div>
+        </article>
+      </div>
+
+      <div class="section-title"><h2>Áreas de serviço</h2><div class="heat-key">menos<i></i>mais</div></div>
+      <article class="card">
+        <div class="heat-scroll"><table class="heat" id="heat"></table></div>
+      </article>
+    </div>
+  </section>
+
+  <!-- ================= COMENTÁRIOS ================= -->
+  <section id="view-comentarios" role="tabpanel" aria-labelledby="tab-comentarios" hidden>
+    <div class="wrap">
+      <div class="page-head">
+        <div>
+          <p class="eyebrow" id="eyebrow-c"></p>
+          <h1>Comentários<span class="dados-ficticios">Dados fictícios</span></h1>
+        </div>
+        <div class="filters">
+          <label class="sr" for="f-area-c">Área de serviço</label>
+          <select class="select" id="f-area-c"></select>
+        </div>
+      </div>
+      <div class="comments-layout">
+        <aside class="filter-panel" aria-label="Filtros">
+          <div class="filter-group"><h3>Estado</h3><div class="opts" id="fo-estado"></div></div>
+          <div class="filter-group"><h3>Fonte</h3><div class="opts" id="fo-fonte"></div></div>
+          <div class="filter-group"><h3>Gravidade</h3><div class="opts" id="fo-grav"></div></div>
+          <div class="filter-group"><h3>Tema</h3><div class="opts" id="fo-tema"></div></div>
+        </aside>
+        <div class="feed">
+          <div class="feed-head"><h2 id="feed-title" style="font-size:20px"></h2><p id="feed-sub"></p></div>
+          <div id="feed" class="feed"></div>
+          <button class="btn btn-quiet more" id="btn-mais" type="button">Ver mais</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="foot">
+    <div class="wrap">
+      <p><b>Protótipo v2.</b> Áreas de serviço, números e textos são fictícios. Servem para discutir a interface e não representam a Colibri.</p>
+      <p>Logótipos das fontes: Simple Icons (CC0), com as cores de cada marca. As marcas pertencem aos respetivos donos.</p>
+    </div>
+  </footer>
+</main>
+
+<script src="js/dados-ficticios.js"></script>
+<script src="js/prototipo.js"></script>
+</body>
+</html>
