@@ -22,6 +22,7 @@
   // Ícones de traço (24×24)
   var P = {
     gota: '<path d="M12 3s6 6.5 6 11a6 6 0 0 1-12 0c0-4.5 6-11 6-11z"/>',
+    sanita: '<rect x="5" y="3" width="6" height="7" rx="1"/><path d="M4 10h16v.5a6.5 6.5 0 0 1-6.5 6.5h-3A6.5 6.5 0 0 1 4 10.5V10z"/><path d="M9 17l-.8 4h7.6L15 17"/>',
     pessoa: '<circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/>',
     chavena: '<path d="M4 9h13v5a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5V9z"/><path d="M17 11h1.5a2.5 2.5 0 0 1 0 5H17M8 3v3M12 3v3"/>',
     euro: '<path d="M17 6.5A6.5 6.5 0 1 0 17 17.5M4 10.5h9M4 13.5h9"/>',
@@ -120,6 +121,7 @@
     periodo: 3, area: '',
     casos: { q: '', fonte: '', grav: '', tema: '', foco: '', agrupar: 'estado' },
     abertos: {}, mostrar: {}, voz: 0, drawer: null, actFonte: '',
+    areasF: { q: '', via: '', servico: '', abertos: '', ordem: 'neg' },
   };
   var alterado = {};      // id -> estado escolhido nesta sessão
   var respondidoAgora = {};
@@ -240,13 +242,13 @@
       '<label class="sr" for="pf-periodo">Period</label><select class="select pill" id="pf-periodo">' + per.map(function (p) { return '<option value="' + p[0] + '"' + (p[0] === st.periodo ? ' selected' : '') + '>' + p[1] + '</option>'; }).join('') + '</select>' +
       (o.area ? '<label class="sr" for="pf-area">Service area</label><select class="select pill" id="pf-area"><option value="">All areas</option>' + D.AREAS.map(function (a) { return '<option' + (a === st.area ? ' selected' : '') + '>' + esc(a) + '</option>'; }).join('') + '</select>' : '') +
       (o.organizar ? '<button type="button" class="btn btn-ghost pill" id="pf-repor"' + (st.editar ? '' : ' hidden') + '>Reset order</button><button type="button" class="btn ' + (st.editar ? 'btn-dark' : 'btn-outline') + ' pill" id="pf-organizar" aria-pressed="' + !!st.editar + '">' + ic('grelha') + '<span>' + (st.editar ? 'Done' : 'Arrange') + '</span></button>' : '') +
-      (o.exportar ? '<button type="button" class="btn btn-dark pill" id="pf-exportar">' + ic('exportar') + 'Export</button>' : '') +
+      (o.exportar ? '<button type="button" class="btn btn-dark pill" id="pf-exportar">' + ic('exportar') + 'Export to PowerPoint</button>' : '') +
       '</div>';
   }
   function ligarFiltros() {
     if ($('pf-periodo')) $('pf-periodo').onchange = function (e) { st.periodo = +e.target.value; st.voz = 0; render(); };
     if ($('pf-area')) $('pf-area').onchange = function (e) { st.area = e.target.value; st.voz = 0; render(); };
-    if ($('pf-exportar')) $('pf-exportar').onclick = function () { window.print(); };
+    if ($('pf-exportar')) $('pf-exportar').onclick = exportarPptx;
   }
   // Variation pill: green when it is good news, red when it is bad, grey when neutral
   function pilula(d) {
@@ -269,23 +271,26 @@
     var meses = meses12();
     var porMes = meses.map(function (m) { return D.MENCOES.filter(function (x) { return x.m === m && isNeg(x) && (!st.area || x.area === st.area); }).length; });
     var maxM = Math.max.apply(null, [1].concat(porMes));
-    var barras = '<div class="mini-bars" aria-hidden="true">' + meses.map(function (m, i) {
-      return '<div class="mb"><span class="b' + (m >= j.desde ? ' on' : '') + '" style="height:0" data-h="' + Math.max(4, porMes[i] / maxM * 100).toFixed(1) + '%"></span><span class="l">' + (i % 2 === 0 ? mesTxt(m) : '&nbsp;') + '</span></div>';
+    // Monthly totals are discrete counts, so columns (not a line). The selected period is the dark part.
+    var barras = '<div class="mini-bars" role="img" aria-label="Complaints per month: ' + meses.map(function (m, i) { return mesTxt(m, true) + ' ' + porMes[i]; }).join(', ') + '">' + meses.map(function (m, i) {
+      return '<div class="mb" data-tip="' + mesTxt(m, true) + ' · ' + porMes[i] + '"><span class="b' + (m >= j.desde ? ' on' : '') + '" style="height:0" data-h="' + Math.max(4, porMes[i] / maxM * 100).toFixed(1) + '%"></span><span class="l">' + (i % 2 === 0 ? mesTxt(m) : '&nbsp;') + '</span></div>';
     }).join('') + '</div>';
     var W = {};
-    W.reclamacoes = '<article class="kpi"><h2>Complaints</h2><div class="kpi-num"><b class="tnum">' + nf(k.neg) + '</b>' + pilula(delta(k.neg, kp.neg, false, 'rel')) + '</div><p class="kpi-sub tnum">' + nf(kp.neg) + ' ' + antTxt + '</p>' + barras + '</article>';
+    snap = { j: j, k: k, kp: kp, antTxt: antTxt, meses: meses, porMes: porMes };
+    W.reclamacoes = '<article class="kpi"><h2>Complaints</h2><div class="kpi-num"><b>' + nf(k.neg) + '</b>' + pilula(delta(k.neg, kp.neg, false, 'rel')) + '</div><p class="kpi-sub tnum">' + nf(kp.neg) + ' ' + antTxt + '</p>' + barras + '</article>';
 
     var porFonte = D.FONTES.map(function (f) { return { f: f, n: rows.filter(function (x) { return x.fonte === f.id; }).length }; });
     var tot = Math.max(1, k.total);
-    W.fontes = '<article class="kpi"><h2>Mentions by source</h2><div class="kpi-num"><b class="tnum">' + nf(k.total) + '</b>' + pilula(delta(k.total, kp.total, null, 'rel')) + '</div><p class="kpi-sub tnum">' + nf(kp.total) + ' ' + antTxt + '</p>' +
+    W.fontes = '<article class="kpi"><h2>Mentions by source</h2><div class="kpi-num"><b>' + nf(k.total) + '</b>' + pilula(delta(k.total, kp.total, null, 'rel')) + '</div><p class="kpi-sub tnum">' + nf(kp.total) + ' ' + antTxt + '</p>' +
       '<div class="split" role="img" aria-label="' + porFonte.map(function (x) { return x.f.curto + ' ' + nf(x.n / tot * 100) + '%'; }).join(', ') + '">' + porFonte.map(function (x) {
         var p = x.n / tot * 100;
         return '<span class="seg" style="flex:0 0 0%;background:' + COR_FONTE[x.f.id] + '" data-flex="' + p.toFixed(2) + '"><b class="tnum">' + (p >= 12 ? nf(p) + '%' : '') + '</b></span>';
-      }).join('') + '</div><div class="split-key">' + porFonte.map(function (x) { return '<span><i style="background:' + COR_FONTE[x.f.id] + '"></i>' + esc(x.f.curto) + '</span>'; }).join('') + '</div></article>';
+      }).join('') + '</div><div class="split-key">' + porFonte.map(function (x) { return '<span><i style="background:' + COR_FONTE[x.f.id] + '"></i>' + esc(x.f.curto) + ' <b class="tnum">' + nf(x.n) + '</b></span>'; }).join('') + '</div></article>';
 
-    W.rating = '<article class="kpi kpi-line"><h2>Google rating</h2><div class="kpi-num"><b class="tnum">' + (k.rating == null ? '–' : nf(k.rating, 1)) + '</b>' + pilula(delta(k.rating, kp.rating, true, 'dec')) + '</div><p class="kpi-sub tnum">' + nf(k.nReviews) + ' reviews · ' + (kp.rating == null ? 'no comparison' : nf(kp.rating, 1) + ' ' + antTxt) + '</p><div id="ch-rating" role="img" aria-label="Average Google rating by month, last 12 months"></div></article>';
+    W.rating = '<article class="kpi kpi-line"><h2>Google rating</h2><div class="kpi-num"><b>' + (k.rating == null ? '–' : nf(k.rating, 1)) + '</b>' + pilula(delta(k.rating, kp.rating, true, 'dec')) + '</div><p class="kpi-sub tnum">' + nf(k.nReviews) + ' reviews · ' + (kp.rating == null ? 'no comparison' : nf(kp.rating, 1) + ' ' + antTxt) + '</p><div id="ch-rating" role="img" aria-label="Average Google rating by month, last 12 months"></div></article>';
 
     rowsVisao = rows;
+    snap.porFonte = porFonte;
     W.atividade = '<article class="kpi kpi-act"><div class="kpi-head"><h2>Latest activity</h2><label class="sr" for="act-fonte">Source</label><select class="select mini" id="act-fonte"><option value="">All</option>' +
       D.FONTES.map(function (f) { return '<option value="' + f.id + '"' + (st.actFonte === f.id ? ' selected' : '') + '>' + esc(f.curto) + '</option>'; }).join('') + '</select></div>' +
       '<ul class="act" id="act-list">' + listaAtividade() + '</ul><a class="link-u act-all" href="#/cases">View all cases</a></article>';
@@ -298,9 +303,10 @@
       var p = x.n / totA * 100;
       var pal = x.a.split(' ').filter(function (w) { return w.length > 2; });
       var mk = (pal.length > 1 ? pal[0][0] + pal[pal.length - 1][0] : x.a.slice(0, 2)).toUpperCase();
-      return '<li><button type="button" data-area="' + esc(x.a) + '"><span class="mk">' + esc(mk) + '</span><span class="t"><span class="row"><span>' + esc(x.a) + '</span><b class="tnum">' + nf(p) + '%</b></span><span class="bar"><span class="fill" style="width:0" data-w="' + p.toFixed(1) + '%"></span></span></span></button></li>';
+      return '<li><button type="button" data-area="' + esc(x.a) + '"><span class="mk">' + esc(mk) + '</span><span class="t"><span class="row"><span>' + esc(x.a) + '</span><b class="tnum">' + nf(p) + '%<small> · ' + x.n + '</small></b></span><span class="bar"><span class="fill" style="width:0" data-w="' + p.toFixed(1) + '%"></span></span></span></button></li>';
     }).join('') + '</ul><p class="col-note">Share of complaints with a known area</p></section>';
 
+    snap.porArea = porArea;
     var colG = '<section class="col"><div class="col-head"><h2>Replies by month</h2><div class="legend"><span><i class="dot" style="background:#2E8B57"></i>Replied</span><span><i class="dot" style="background:#E5807A"></i>No reply</span></div></div><div id="ch-volume" role="img" aria-label="Complaints and neutral comments by month, replied and not replied"></div></section>';
 
     var temas = D.TEMAS.map(function (t) {
@@ -313,6 +319,7 @@
       return '<tr data-tema="' + esc(x.t.nome) + '" tabindex="0"><td><span class="tt-name"><span class="ic-circle">' + ic(x.t.icone) + '</span><span><b>' + esc(x.t.curto) + '</b><span class="' + (x.d > 0 ? 'bad' : x.d < 0 ? 'good' : '') + '">' + d + '</span></span></span></td><td class="num">' + (x.t.nps == null ? '–' : x.t.nps) + '</td><td class="num strong">' + x.n + '</td></tr>';
     }).join('') + '</tbody></table></section>';
     W.areas = colA; W.respostas = colG; W.temas = colT;
+    snap.temas = temas;
 
     // ---- Linha 3: sinal + voz do cliente
     var combos = [];
@@ -366,17 +373,18 @@
       sig = '<article class="panel signal" aria-labelledby="t-sinal"><div class="signal-main"><div class="signal-top"><p class="eyebrow">What changed</p><h3 id="t-sinal">No clear increase</h3><p class="lead">No area and topic combination rose clearly in this period.</p></div></div>' + lado + '</article>';
     }
 
-    // What customers say: the two most recent high-severity complaints and the most recent praise, side by side
-    vozes = rows.filter(function (x) { return isNeg(x) && x.gravidade === 'High'; }).sort(function (a, b) { return dataDe(b) - dataDe(a); }).slice(0, 2)
-      .concat(rows.filter(function (x) { return x.sentimento === 'positive'; }).sort(function (a, b) { return dataDe(b) - dataDe(a); }).slice(0, 1));
-    var vozHtml = '<section class="voices" aria-labelledby="t-voz"><div class="col-head"><h2 id="t-voz">What customers say</h2><a class="link-u" href="#/cases">View cases</a></div>' +
+    // Latest comments: the three most recent mentions, any source and sentiment
+    vozes = rows.slice().sort(function (a, b) { return dataDe(b) - dataDe(a) || (b.id > a.id ? 1 : -1); }).slice(0, 3);
+    var TAG = { negative: 'Complaint', neutral: 'Neutral', positive: 'Praise' };
+    var vozHtml = '<section class="voices" aria-labelledby="t-voz"><div class="col-head"><h2 id="t-voz">Latest comments</h2><a class="link-u" href="#/cases">View all cases</a></div>' +
       (vozes.length ? '<div class="voice-row">' + vozes.map(function (x) {
-        var neg = x.sentimento !== 'positive';
-        return '<figure class="voice' + (neg ? ' neg' : '') + '"><span class="tag">' + (neg ? 'Complaint · high severity' : 'Praise') + '</span>' +
-          '<blockquote>“' + esc(x.texto) + '”</blockquote>' +
-          '<figcaption class="who"><span class="src"><img src="' + LOGO[x.canal] + '" alt=""></span><div><b>' + esc(x.canal) + (x.area ? ' · ' + esc(x.area) : '') + '</b><span>' + quando(x) + (x.estrelas ? ' · ' : '') + estrelas(x.estrelas) + '</span></div>' +
+        var cls = x.sentimento === 'positive' ? '' : x.sentimento === 'neutral' ? ' neu' : ' neg';
+        return '<figure class="voice' + cls + '"><span class="tag">' + TAG[x.sentimento] + (x.sentimento === 'negative' ? ' · ' + x.gravidade.toLowerCase() + ' severity' : '') + '</span>' +
+          '<blockquote>' + esc(x.texto) + '</blockquote>' +
+          '<figcaption class="who"><span class="src"><img src="' + LOGO[x.canal] + '" alt=""></span><div><b>' + esc(x.canal) + (x.area ? ' · ' + esc(x.area) : '') + '</b><span>' + esc(tema(x.tema).curto) + ' · ' + quando(x) + (x.estrelas ? ' · ' : '') + estrelas(x.estrelas) + '</span></div>' +
           '<button type="button" class="link" data-abrir="' + x.id + '">Open case' + ic('seta') + '</button></figcaption></figure>';
       }).join('') + '</div>' : '<p class="empty-line">No comments in this period.</p>') + '</section>';
+    snap.sinal = sinalAtual; snap.frase = sinalAtual ? frase : ''; snap.outros = outrosSinais.map(function (o) { return o.html.replace(/<[^>]+>/g, ''); }); snap.vozes = vozes;
     W.sinal = sig; W.voz = vozHtml;
     h += '<p class="edit-hint" id="edit-hint"' + (st.editar ? '' : ' hidden') + '>Drag the blocks to change the order. The order is saved in this browser.</p>' + quadro(W);
     return h;
@@ -415,13 +423,19 @@
     });
     var vals = serie.filter(function (v) { return v != null; });
     var ult = serie.length - 1; while (ult > 0 && serie[ult] == null) ult--;
+    // An average rating is a level that moves over time: a line. The scale is labelled so small moves do not look dramatic.
+    var yMin = vals.length ? Math.max(1, Math.floor((Math.min.apply(null, vals) - 0.3) * 2) / 2) : 1;
+    var yMax = vals.length ? Math.min(5, Math.ceil((Math.max.apply(null, vals) + 0.3) * 2) / 2) : 5;
+    snap.rating = serie;
+    var iSel = meses.indexOf(j.desde);
     chart($('ch-rating'), {
-      grid: { left: 0, right: 0, top: 10, bottom: 22 },
+      grid: { left: 24, right: 14, top: 12, bottom: 24 },
       tooltip: Object.assign({ trigger: 'axis', valueFormatter: function (v) { return v == null ? '–' : nf(v, 2) + ' out of 5'; } }, TOOLTIP),
-      xAxis: Object.assign({ type: 'category', boundaryGap: false, data: meses.map(function (m) { return mesTxt(m); }) }, EIXO, { axisLabel: { color: '#6E6D6B', fontSize: 11, interval: 2, margin: 8, showMinLabel: false, showMaxLabel: false } }),
-      yAxis: { type: 'value', show: false, min: vals.length ? Math.min.apply(null, vals) - 0.6 : 1, max: vals.length ? Math.max.apply(null, vals) + 0.25 : 5 },
+      xAxis: Object.assign({ type: 'category', boundaryGap: false, data: meses.map(function (m) { return mesTxt(m); }) }, EIXO, { axisLabel: { color: '#6E6D6B', fontSize: 11, interval: 2, margin: 8 } }),
+      yAxis: { type: 'value', min: yMin, max: yMax, interval: 0.5, axisLabel: { color: '#6E6D6B', fontSize: 10, inside: false, margin: 4, formatter: function (v) { return nf(v, 1); } }, splitLine: { lineStyle: { color: '#E4E1DC' } } },
       series: [{
-        type: 'line', smooth: 0.45, smoothMonotone: 'x', data: serie, symbol: 'none', connectNulls: true,
+        type: 'line', smooth: 0.2, smoothMonotone: 'x', data: serie, symbol: 'none', connectNulls: true,
+        markArea: iSel >= 0 ? { silent: true, itemStyle: { color: 'rgba(0,85,85,.06)' }, data: [[{ xAxis: iSel }, { xAxis: meses.length - 1 }]] } : undefined,
         lineStyle: { width: 2.5, color: '#005555' },
         areaStyle: window.echarts ? { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: 'rgba(0,85,85,.2)' }, { offset: 1, color: 'rgba(0,85,85,0)' }]) } : null,
         markPoint: { symbol: 'circle', symbolSize: 11, itemStyle: { color: '#005555', borderColor: '#FFFFFF', borderWidth: 2.5 }, label: { show: false }, data: [{ coord: [ult, serie[ult]] }] },
@@ -433,14 +447,17 @@
       var c = sinalAtual;
       var sA = meses.map(function (m) { return D.MENCOES.filter(function (x) { return x.m === m && isNeg(x) && x.area === c.a && x.tema === c.t.nome; }).length; });
       var sM = meses.map(function (m) { return +(D.MENCOES.filter(function (x) { return x.m === m && isNeg(x) && x.area && x.tema === c.t.nome; }).length / D.AREAS.length).toFixed(1); });
+      snap.sA = sA; snap.sM = sM;
+      var iSel2 = meses.indexOf(j.desde);
       chart($('ch-signal'), {
-        grid: { left: 22, right: 22, top: 44, bottom: 22 },
+        grid: { left: 30, right: 22, top: 48, bottom: 22 },
         tooltip: Object.assign({ trigger: 'axis' }, TOOLTIP),
         xAxis: Object.assign({ type: 'category', boundaryGap: false, data: meses.map(function (m) { return mesTxt(m); }) }, EIXO),
-        yAxis: { type: 'value', show: false, min: 0 },
+        yAxis: { type: 'value', min: 0, minInterval: 1, splitNumber: 3, axisLabel: { color: '#6E6D6B', fontSize: 10 }, splitLine: { lineStyle: { color: '#EFEDEA' } } },
         series: [
-          { name: 'Area average', type: 'line', smooth: 0.4, smoothMonotone: 'x', data: sM, symbol: 'none', lineStyle: { width: 1.5, type: [4, 3], color: '#9A9895' } },
-          { name: c.a, type: 'line', smooth: 0.4, smoothMonotone: 'x', data: sA, symbol: 'circle', symbolSize: 7, showSymbol: false, lineStyle: { width: 2.5, color: '#C2362E' }, itemStyle: { color: '#C2362E' },
+          { name: 'Area average', type: 'line', smooth: 0.2, smoothMonotone: 'x', data: sM, symbol: 'none', lineStyle: { width: 1.5, type: [4, 3], color: '#9A9895' },
+            markArea: iSel2 >= 0 ? { silent: true, itemStyle: { color: 'rgba(0,85,85,.06)' }, label: { show: true, position: 'insideTop', color: '#5E7F7F', fontSize: 10, formatter: 'Selected period' }, data: [[{ xAxis: iSel2 }, { xAxis: meses.length - 1 }]] } : undefined },
+          { name: c.a, type: 'line', smooth: 0.2, smoothMonotone: 'x', data: sA, symbol: 'circle', symbolSize: 7, showSymbol: false, lineStyle: { width: 2.5, color: '#C2362E' }, itemStyle: { color: '#C2362E' },
             areaStyle: window.echarts ? { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: 'rgba(194,54,46,.10)' }, { offset: 1, color: 'rgba(194,54,46,0)' }]) } : null,
             markPoint: { symbol: 'circle', symbolSize: 10, itemStyle: { color: '#C2362E', borderColor: '#FFFFFF', borderWidth: 2 }, label: { show: false }, data: [{ coord: [meses.length - 1, sA[sA.length - 1]] }] } },
         ],
@@ -451,15 +468,16 @@
     var pedem = D.MENCOES.filter(function (x) { return x.m >= 12 && x.sentimento !== 'positive' && (!st.area || x.area === st.area); });
     var resp = meses.map(function (m) { return pedem.filter(function (x) { return x.m === m && isResp(x); }).length; });
     var sem = meses.map(function (m) { return pedem.filter(function (x) { return x.m === m && !isResp(x); }).length; });
+    snap.resp = resp; snap.sem = sem;
     chart($('ch-volume'), {
       grid: { left: 0, right: 0, top: 12, bottom: 0, containLabel: true },
       tooltip: Object.assign({ trigger: 'axis', axisPointer: { type: 'shadow', shadowStyle: { color: 'rgba(30,30,30,.04)' } },
-        formatter: function (ps) { return '<div style="opacity:.7;margin-bottom:4px">' + mesTxt(meses[ps[0].dataIndex], true) + '</div>' + ps.map(function (p) { return p.marker + p.seriesName + ' <b style="margin-left:6px">' + p.value + '</b>'; }).join('<br>'); } }, TOOLTIP),
+        formatter: function (ps) { var i = ps[0].dataIndex, t = resp[i] + sem[i]; return '<div style="opacity:.7;margin-bottom:4px">' + mesTxt(meses[i], true) + '</div>' + ps.map(function (p) { return p.marker + p.seriesName + ' <b style="margin-left:6px">' + p.value + '</b>'; }).join('<br>') + (t ? '<div style="margin-top:4px;opacity:.85">Reply rate <b>' + nf(resp[i] / t * 100) + '%</b></div>' : ''); } }, TOOLTIP),
       xAxis: Object.assign({ type: 'category', data: meses.map(function (m) { return mesTxt(m); }) }, EIXO),
       yAxis: { type: 'value', splitNumber: 4, axisLabel: { color: '#6E6D6B', fontSize: 11 }, splitLine: { show: false } },
       series: [
-        { name: 'Replied', type: 'bar', stack: 't', barWidth: '58%', data: resp, itemStyle: { color: '#2E8B57', borderRadius: [0, 0, 6, 6] } },
-        { name: 'No reply', type: 'bar', stack: 't', data: sem, itemStyle: { color: '#E5807A', borderRadius: [6, 6, 0, 0] } },
+        { name: 'Replied', type: 'bar', stack: 't', barWidth: '52%', data: resp, itemStyle: { color: '#2E8B57', borderRadius: [0, 0, 4, 4], borderColor: '#FFFFFF', borderWidth: 1 } },
+        { name: 'No reply', type: 'bar', stack: 't', data: sem, itemStyle: { color: '#E5807A', borderRadius: [4, 4, 0, 0], borderColor: '#FFFFFF', borderWidth: 1 } },
       ],
     });
   }
@@ -469,7 +487,7 @@
   // ======================================================================
   var ORDEM_PADRAO = ['reclamacoes', 'fontes', 'rating', 'atividade', 'areas', 'respostas', 'temas', 'sinal', 'voz'];
   var LARGURA = { reclamacoes: 'w-kpi', fontes: 'w-kpi', rating: 'w-kpi', atividade: 'w-kpi', areas: 'w-areas', respostas: 'w-resp', temas: 'w-temas', sinal: 'w-full', voz: 'w-full' };
-  var NOME_BLOCO = { reclamacoes: 'Complaints', fontes: 'Mentions by source', rating: 'Google rating', atividade: 'Latest activity', areas: 'Service areas', respostas: 'Replies by month', temas: 'Topics', sinal: 'What changed', voz: 'What customers say' };
+  var NOME_BLOCO = { reclamacoes: 'Complaints', fontes: 'Mentions by source', rating: 'Google rating', atividade: 'Latest activity', areas: 'Service areas', respostas: 'Replies by month', temas: 'Topics', sinal: 'What changed', voz: 'Latest comments' };
   var CHAVE_ORDEM = 'colibri.overview.order';
   function lerOrdem() {
     try {
@@ -740,7 +758,7 @@
 
     var el = $('drawer');
     el.innerHTML = '<div class="dr-head"><img class="src-logo" src="' + LOGO[x.canal] + '" alt=""><span class="id">' + x.id + '</span><span class="sp"></span><button type="button" class="icon-btn" id="dr-fechar" aria-label="Close">' + ic('fechar') + '</button></div>' +
-      '<div class="dr-body"><h2 id="drawer-title">“' + esc(x.texto) + '”</h2><p class="q-meta">' + estrelas(x.estrelas) + '<span>' + esc(f.nome) + (x.fonte === 'redes' ? ' · ' + x.canal : '') + '</span><span aria-hidden="true">·</span><span>' + quando(x) + '</span></p>' +
+      '<div class="dr-body"><h2 id="drawer-title">' + esc(x.texto) + '</h2><p class="q-meta">' + estrelas(x.estrelas) + '<span>' + esc(f.nome) + (x.fonte === 'redes' ? ' · ' + x.canal : '') + '</span><span aria-hidden="true">·</span><span>' + quando(x) + '</span></p>' +
       '<dl class="kv">' +
       '<dt><label for="dr-estado">Status</label></dt><dd><select class="select" id="dr-estado">' + ESTADOS.map(function (s) { return '<option' + (s.id === e ? ' selected' : '') + '>' + s.id + '</option>'; }).join('') + '</select></dd>' +
       '<dt>Owner</dt><dd>' + avatar(x.responsavel) + esc(x.responsavel) + '</dd>' +
@@ -783,18 +801,49 @@
   // ======================================================================
   // ÁREAS DE SERVIÇO
   // ======================================================================
-  function pgAreas() {
-    var j = janela();
+  function linhasAreas() {
+    var j = janela(), f = st.areasF, q = norm(f.q.trim());
     var linhas = D.AREAS.map(function (a) {
       var rows = filtrar(j.desde, j.ate, a), prev = filtrar(j.pDesde, j.pAte, a);
       var k = indicadores(rows), kp = indicadores(prev);
       var neg = rows.filter(isNeg);
       var top = D.TEMAS.map(function (t) { return [t, neg.filter(function (x) { return x.tema === t.nome; }).length]; }).sort(function (p, q) { return q[1] - p[1]; })[0];
       return { a: a, info: D.AREA_INFO[a], k: k, kp: kp, top: top };
-    }).sort(function (p, q) { return q.k.neg - p.k.neg; });
-
-    var h = '<div class="page-head"><div><h1>Service areas</h1><p class="meta">' + D.AREAS.length + ' areas · ' + periodoTxt(j) + ' · sorted by number of complaints</p></div>' + filtros() + '</div>' +
-      '<section class="panel"><div class="tbl-wrap"><table class="tbl" style="min-width:920px"><thead><tr><th>Area</th><th>Manager</th><th class="num">Mentions</th><th class="num">Complaints</th><th class="num">Google rating</th><th class="num">Replied</th><th class="num">To handle</th><th>Main topic</th></tr></thead><tbody>' +
+    }).filter(function (l) {
+      return (!q || norm(l.a + ' ' + l.info.gestor + ' ' + l.info.via).indexOf(q) >= 0) &&
+        (!f.via || l.info.via === f.via) &&
+        (!f.servico || l.info.servicos.indexOf(f.servico) >= 0) &&
+        (!f.abertos || l.k.abertos > 0);
+    });
+    var ORD = {
+      neg: function (p, r) { return r.k.neg - p.k.neg; },
+      rating: function (p, r) { return (p.k.rating == null ? 9 : p.k.rating) - (r.k.rating == null ? 9 : r.k.rating); },
+      abertos: function (p, r) { return r.k.abertos - p.k.abertos || r.k.neg - p.k.neg; },
+      nome: function (p, r) { return p.a.localeCompare(r.a, 'pt'); },
+    };
+    return linhas.sort(ORD[f.ordem] || ORD.neg);
+  }
+  function pgAreas() {
+    var j = janela(), f = st.areasF;
+    function opt(v, l, sel) { return '<option value="' + esc(v) + '"' + (v === sel ? ' selected' : '') + '>' + esc(l) + '</option>'; }
+    var vias = D.AREAS.map(function (a) { return D.AREA_INFO[a].via; }).filter(function (v, i, arr) { return arr.indexOf(v) === i; }).sort();
+    var servs = [].concat.apply([], D.AREAS.map(function (a) { return D.AREA_INFO[a].servicos; })).filter(function (v, i, arr) { return arr.indexOf(v) === i; });
+    return '<div class="page-head"><div><h1>Service areas</h1><p class="meta" id="areas-meta">' + D.AREAS.length + ' areas · ' + periodoTxt(j) + '</p></div>' + filtros() + '</div>' +
+      '<div class="toolbar areas-toolbar">' +
+      '<div class="input-wrap">' + ic('lupa') + '<label class="sr" for="a-q">Search areas</label><input class="input" id="a-q" type="search" placeholder="Search area or manager" value="' + esc(f.q) + '" autocomplete="off"></div>' +
+      '<label class="sr" for="a-via">Motorway</label><select class="select" id="a-via">' + opt('', 'All motorways', f.via) + vias.map(function (v) { return opt(v, v, f.via); }).join('') + '</select>' +
+      '<label class="sr" for="a-servico">Service</label><select class="select" id="a-servico">' + opt('', 'Any service', f.servico) + servs.map(function (v) { return opt(v, v, f.servico); }).join('') + '</select>' +
+      '<label class="sr" for="a-abertos">Cases to handle</label><select class="select" id="a-abertos">' + opt('', 'With or without cases to handle', f.abertos) + opt('1', 'Only with cases to handle', f.abertos) + '</select>' +
+      '<span class="spacer"></span>' +
+      '<span class="inline">Sort by <select class="select" id="a-ordem" data-label="Sort by">' + [['neg', 'Most complaints'], ['rating', 'Lowest Google rating'], ['abertos', 'Most to handle'], ['nome', 'Name']].map(function (o) { return opt(o[0], o[1], f.ordem); }).join('') + '</select></span>' +
+      '</div><div id="areas-corpo"></div>';
+  }
+  function desenharAreas() {
+    var el = $('areas-corpo'); if (!el) return;
+    var j = janela(), linhas = linhasAreas();
+    $('areas-meta').textContent = (linhas.length === D.AREAS.length ? D.AREAS.length + ' areas' : linhas.length + ' of ' + D.AREAS.length + ' areas') + ' · ' + periodoTxt(j);
+    if (!linhas.length) { el.innerHTML = '<section class="panel"><div class="empty"><h3>No service area matches</h3><p>Clear the search or change the filters.</p></div></section>'; return; }
+    var h = '<section class="panel"><div class="tbl-wrap"><table class="tbl" style="min-width:920px"><thead><tr><th>Area</th><th>Manager</th><th class="num">Mentions</th><th class="num">Complaints</th><th class="num">Google rating</th><th class="num">Replied</th><th class="num">To handle</th><th>Main topic</th></tr></thead><tbody>' +
       linhas.map(function (l) {
         var d = delta(l.k.neg, l.kp.neg, false, 'abs');
         return '<tr class="row-link" data-area="' + esc(l.a) + '" tabindex="0"><td><span class="strong">' + esc(l.a) + '</span><span class="sub">' + l.info.via + ' · ' + l.info.km + '</span></td>' +
@@ -807,26 +856,34 @@
           '<td>' + (l.top && l.top[1] ? esc(l.top[0].nome) + ' <span style="color:var(--muted)">(' + l.top[1] + ')</span>' : '–') + '</td></tr>';
       }).join('') + '</tbody></table></div></section>';
 
-    // Mapa de calor área × tema
-    var neg = filtrar(j.desde, j.ate, '').filter(isNeg);
+    // Topics by area: a grid of counts, so a heatmap (one hue, darker = more)
+    var areas = linhas.map(function (l) { return l.a; });
+    var neg = filtrar(j.desde, j.ate, '').filter(function (x) { return isNeg(x) && areas.indexOf(x.area) >= 0; });
     var top = D.TEMAS.map(function (t) { return { t: t, n: neg.filter(function (x) { return x.tema === t.nome; }).length }; }).filter(function (x) { return x.n; }).sort(function (a, b) { return b.n - a.n; }).slice(0, 7);
-    var vals = D.AREAS.map(function (a) { return top.map(function (x) { return neg.filter(function (y) { return y.area === a && y.tema === x.t.nome; }).length; }); });
+    var vals = areas.map(function (a) { return top.map(function (x) { return neg.filter(function (y) { return y.area === a && y.tema === x.t.nome; }).length; }); });
     var vmax = Math.max.apply(null, [1].concat([].concat.apply([], vals)));
     h += '<div class="sec-head"><h2>Topics by area</h2><span class="heat-key">fewer<i></i>more</span></div><section class="panel panel-body"><div class="tbl-wrap"><table class="heat"><colgroup><col class="first">' + top.map(function () { return '<col>'; }).join('') + '</colgroup><thead><tr><th></th>' +
       top.map(function (x) { return '<th title="' + esc(x.t.nome) + '">' + esc(x.t.curto) + '</th>'; }).join('') + '</tr></thead><tbody>' +
-      D.AREAS.map(function (a, i) {
-        return '<tr><td class="a">' + esc(a) + '</td>' + vals[i].map(function (v) {
+      areas.map(function (a, i) {
+        return '<tr><td class="a">' + esc(a) + '</td>' + vals[i].map(function (v, k) {
           var p = v / vmax;
-          return '<td class="c" style="background:' + (v ? 'rgba(0,85,85,' + (0.07 + p * 0.85).toFixed(2) + ')' : '#FAFAF8') + ';color:' + (p > 0.5 ? '#FFFFFF' : '#003C3C') + '">' + (v || '') + '</td>';
+          return '<td class="c" title="' + esc(a + ' · ' + top[k].t.nome + ': ' + v) + '" style="background:' + (v ? 'rgba(0,85,85,' + (0.07 + p * 0.85).toFixed(2) + ')' : '#FAFAF8') + ';color:' + (p > 0.5 ? '#FFFFFF' : '#003C3C') + '">' + (v || '') + '</td>';
         }).join('') + '</tr>';
       }).join('') + '</tbody></table></div></section>';
-    return h;
-  }
-  function ligarAreas() {
-    $$('tr[data-area]').forEach(function (tr) {
+    el.innerHTML = h;
+    $$('tr[data-area]', el).forEach(function (tr) {
       tr.onclick = function () { irArea(tr.dataset.area); };
       tr.onkeydown = function (e) { if (e.key === 'Enter') irArea(tr.dataset.area); };
     });
+  }
+  function ligarAreas() {
+    var t;
+    $('a-q').oninput = function (e) { clearTimeout(t); t = setTimeout(function () { st.areasF.q = e.target.value; desenharAreas(); }, 120); };
+    $('a-via').onchange = function (e) { st.areasF.via = e.target.value; desenharAreas(); };
+    $('a-servico').onchange = function (e) { st.areasF.servico = e.target.value; desenharAreas(); };
+    $('a-abertos').onchange = function (e) { st.areasF.abertos = e.target.value; desenharAreas(); };
+    $('a-ordem').onchange = function (e) { st.areasF.ordem = e.target.value; desenharAreas(); };
+    desenharAreas();
   }
 
   function pgArea(nome) {
@@ -961,6 +1018,144 @@
     ['dragenter', 'dragover'].forEach(function (ev) { drop.addEventListener(ev, function (e) { e.preventDefault(); drop.classList.add('over'); }); });
     ['dragleave', 'drop'].forEach(function (ev) { drop.addEventListener(ev, function (e) { e.preventDefault(); drop.classList.remove('over'); }); });
     drop.addEventListener('drop', function (e) { listar(e.dataTransfer.files); });
+  }
+
+  // ======================================================================
+  // EXPORT: the Overview as an editable PowerPoint (native charts, tables and text boxes)
+  // Uses PptxGenJS (MIT), loaded only when someone exports.
+  // ======================================================================
+  var snap = null;
+  function carregarScript(src) {
+    return new Promise(function (res, rej) {
+      if (window.PptxGenJS) return res();
+      var sc = document.createElement('script'); sc.src = src; sc.onload = res; sc.onerror = rej; document.head.appendChild(sc);
+    });
+  }
+  function exportarPptx() {
+    if (!snap) return;
+    aCarregar('Preparing the PowerPoint');
+    carregarScript('js/vendor/pptxgen.bundle.js')
+      .then(construirPptx)
+      .then(function () { pronto(); toast('PowerPoint downloaded.'); },
+        function (e) { pronto(); toast('Could not create the PowerPoint. Try again.', 'erro'); if (window.console) console.error(e); });
+  }
+  function logoDataUrl() {
+    try {
+      var img = document.querySelector('.brand img'), c = document.createElement('canvas');
+      c.width = img.naturalWidth; c.height = img.naturalHeight; c.getContext('2d').drawImage(img, 0, 0);
+      return { data: c.toDataURL('image/png'), r: img.naturalHeight / img.naturalWidth };
+    } catch (e) { return null; } // opened from disk: the browser blocks reading the image
+  }
+  function construirPptx() {
+    var S = snap, j = S.j;
+    var C = { ink: '1E1E1E', ink2: '484747', muted: '6E6D6B', line: 'E9E7E3', surf: 'F6F4F2', teal: '005555', teal50: 'E8F3F3', pink: 'B62454', good: '1B7A4B', bad: 'B3261E', red: 'C2362E', grey: '9A9895' };
+    var F = 'Noto Sans';
+    var pptx = new PptxGenJS();
+    pptx.layout = 'LAYOUT_WIDE'; // 13.33 x 7.5 in
+    pptx.author = 'Colibri · Customer feedback';
+    pptx.title = 'Customer feedback · Overview';
+    var sub = areaTxt() + ' · ' + periodoTxt(j);
+    var logo = logoDataUrl();
+    var mesesTxt = S.meses.map(function (m) { return mesTxt(m); });
+    var EIXOS = { fontFace: F, catAxisLabelColor: C.muted, valAxisLabelColor: C.muted, catAxisLabelFontSize: 10, valAxisLabelFontSize: 10, catAxisLineShow: false, valAxisLineShow: false,
+      valGridLine: { color: 'E4E1DC', size: 0.5 }, catGridLine: { style: 'none' }, legendFontSize: 10, legendColor: C.ink2, legendFontFace: F };
+    function deltaCor(d) { return d.cls === 'good' ? C.good : d.cls === 'bad' ? C.bad : C.muted; }
+    function deltaTxt(d) { return d.txt === 'no comparison' ? 'No comparison' : d.txt === 'no change' ? 'No change' : d.txt.replace('↑ ', '+').replace('↓ ', '−'); }
+    function cabecalho(sl, t, n) {
+      sl.background = { color: 'FFFFFF' };
+      sl.addText(t, { x: 0.6, y: 0.35, w: 9.5, h: 0.6, fontFace: F, fontSize: 24, bold: true, color: C.ink, margin: 0 });
+      sl.addText(sub, { x: 0.6, y: 0.92, w: 9.5, h: 0.35, fontFace: F, fontSize: 12, color: C.muted, margin: 0 });
+      if (logo) sl.addImage({ data: logo.data, x: 11.45, y: 0.4, w: 1.3, h: 1.3 * logo.r });
+      sl.addText(String(n), { x: 12.2, y: 7.0, w: 0.6, h: 0.3, fontFace: F, fontSize: 9, color: C.muted, align: 'right', margin: 0 });
+    }
+    function kpi(sl, x, titulo, valor, d, antes) {
+      sl.addShape(pptx.ShapeType.roundRect, { x: x, y: 1.55, w: 3.9, h: 1.55, fill: { color: C.surf }, line: { color: C.surf }, rectRadius: 0.18 });
+      sl.addText(titulo, { x: x + 0.25, y: 1.7, w: 3.4, h: 0.3, fontFace: F, fontSize: 12, color: C.ink2, margin: 0 });
+      sl.addText([{ text: valor, options: { fontSize: 30, bold: true, color: C.ink } }, { text: '   ' + deltaTxt(d), options: { fontSize: 13, bold: true, color: deltaCor(d) } }],
+        { x: x + 0.25, y: 2.05, w: 3.4, h: 0.6, fontFace: F, margin: 0, valign: 'middle' });
+      sl.addText(antes, { x: x + 0.25, y: 2.68, w: 3.4, h: 0.3, fontFace: F, fontSize: 11, color: C.muted, margin: 0 });
+    }
+    var n = 1;
+
+    // 1. Cover
+    var sl = pptx.addSlide(); sl.background = { color: 'FFFFFF' };
+    if (logo) sl.addImage({ data: logo.data, x: 0.8, y: 0.8, w: 2.4, h: 2.4 * logo.r });
+    sl.addText('Customer feedback', { x: 0.8, y: 2.6, w: 11, h: 0.9, fontFace: F, fontSize: 40, bold: true, color: C.ink, margin: 0 });
+    sl.addText('Overview · ' + sub, { x: 0.8, y: 3.5, w: 11, h: 0.5, fontFace: F, fontSize: 18, color: C.ink2, margin: 0 });
+    sl.addText('Google Reviews, Jira complaints, Facebook and Instagram · exported ' + dataLonga({ m: 23, dia: HOJE.getDate() }), { x: 0.8, y: 6.6, w: 11, h: 0.35, fontFace: F, fontSize: 11, color: C.muted, margin: 0 });
+    sl.addShape(pptx.ShapeType.rect, { x: 0, y: 7.38, w: 13.33, h: 0.12, fill: { color: C.teal }, line: { color: C.teal } });
+
+    // 2. Headline numbers and trends
+    sl = pptx.addSlide(); cabecalho(sl, 'Headline numbers', ++n);
+    var k = S.k, kp = S.kp;
+    kpi(sl, 0.6, 'Complaints', nf(k.neg), delta(k.neg, kp.neg, false, 'rel'), nf(kp.neg) + ' ' + S.antTxt);
+    kpi(sl, 4.72, 'Mentions', nf(k.total), delta(k.total, kp.total, null, 'rel'), nf(kp.total) + ' ' + S.antTxt);
+    kpi(sl, 8.84, 'Google rating', k.rating == null ? '–' : nf(k.rating, 1), delta(k.rating, kp.rating, true, 'dec'), nf(k.nReviews) + ' reviews' + (kp.rating == null ? '' : ' · ' + nf(kp.rating, 1) + ' ' + S.antTxt));
+    sl.addText('Complaints per month', { x: 0.6, y: 3.4, w: 6, h: 0.3, fontFace: F, fontSize: 13, bold: true, color: C.ink, margin: 0 });
+    sl.addChart(pptx.ChartType.bar, [{ name: 'Complaints', labels: mesesTxt, values: S.porMes }], Object.assign({}, EIXOS,
+      { x: 0.6, y: 3.75, w: 6, h: 3.1, barDir: 'col', barGapWidthPct: 45, chartColors: [C.teal], showLegend: false, showValue: false }));
+    sl.addText('Average Google rating per month', { x: 6.9, y: 3.4, w: 5.8, h: 0.3, fontFace: F, fontSize: 13, bold: true, color: C.ink, margin: 0 });
+    var rat = (S.rating || []).map(function (v) { return v == null ? 0 : v; });
+    sl.addChart(pptx.ChartType.line, [{ name: 'Google rating', labels: mesesTxt, values: rat }], Object.assign({}, EIXOS,
+      { x: 6.9, y: 3.75, w: 5.8, h: 3.1, chartColors: [C.teal], lineSize: 2, lineDataSymbol: 'none', showLegend: false, valAxisMinVal: 1, valAxisMaxVal: 5, valAxisMajorUnit: 1, valAxisLabelFormatCode: '0.0' }));
+
+    // 3. Where mentions come from, and which areas
+    sl = pptx.addSlide(); cabecalho(sl, 'Where mentions come from', ++n);
+    sl.addText('Mentions by source', { x: 0.6, y: 1.55, w: 5.8, h: 0.3, fontFace: F, fontSize: 13, bold: true, color: C.ink, margin: 0 });
+    sl.addChart(pptx.ChartType.bar, S.porFonte.map(function (x) { return { name: x.f.curto, labels: ['Mentions'], values: [x.n] }; }), Object.assign({}, EIXOS,
+      { x: 0.6, y: 1.9, w: 5.8, h: 2.2, barDir: 'bar', barGrouping: 'percentStacked', chartColors: S.porFonte.map(function (x) { return COR_FONTE[x.f.id].slice(1); }),
+        showLegend: true, legendPos: 'b', showValue: true, dataLabelColor: 'FFFFFF', dataLabelFontSize: 11, dataLabelFontBold: true, catAxisHidden: true, valAxisHidden: true, valGridLine: { style: 'none' } }));
+    sl.addTable([[{ text: 'Source', options: { bold: true, color: C.muted } }, { text: 'Mentions', options: { bold: true, color: C.muted, align: 'right' } }, { text: 'Share', options: { bold: true, color: C.muted, align: 'right' } }]].concat(
+      S.porFonte.map(function (x) { return [x.f.nome, { text: nf(x.n), options: { align: 'right' } }, { text: nf(x.n / Math.max(1, k.total) * 100) + '%', options: { align: 'right' } }]; })),
+      { x: 0.6, y: 4.4, w: 5.8, colW: [3.2, 1.3, 1.3], fontFace: F, fontSize: 11, color: C.ink, border: { type: 'solid', pt: 0.5, color: C.line }, rowH: 0.36 });
+    sl.addText('Complaints by service area', { x: 6.9, y: 1.55, w: 5.8, h: 0.3, fontFace: F, fontSize: 13, bold: true, color: C.ink, margin: 0 });
+    var pa = S.porArea.slice().reverse();
+    sl.addChart(pptx.ChartType.bar, [{ name: 'Complaints', labels: pa.map(function (x) { return x.a; }), values: pa.map(function (x) { return x.n; }) }], Object.assign({}, EIXOS,
+      { x: 6.9, y: 1.9, w: 5.8, h: 5.0, barDir: 'bar', barGapWidthPct: 55, chartColors: [C.teal], showLegend: false, showValue: true, dataLabelColor: C.ink2, dataLabelFontSize: 10, dataLabelPosition: 'outEnd', valAxisHidden: true, valGridLine: { style: 'none' } }));
+
+    // 4. Replies
+    sl = pptx.addSlide(); cabecalho(sl, 'Replies by month', ++n);
+    var tR = soma(S.resp, function (v) { return v; }), tS = soma(S.sem, function (v) { return v; });
+    sl.addText('Complaints and neutral comments, last 12 months. ' + nf(tR / Math.max(1, tR + tS) * 100) + '% replied.', { x: 0.6, y: 1.5, w: 12, h: 0.35, fontFace: F, fontSize: 13, color: C.ink2, margin: 0 });
+    sl.addChart(pptx.ChartType.bar, [{ name: 'Replied', labels: mesesTxt, values: S.resp }, { name: 'No reply', labels: mesesTxt, values: S.sem }], Object.assign({}, EIXOS,
+      { x: 0.6, y: 2.0, w: 12.1, h: 4.9, barDir: 'col', barGrouping: 'stacked', barGapWidthPct: 50, chartColors: ['2E8B57', 'E5807A'], showLegend: true, legendPos: 't' }));
+
+    // 5. Topics
+    sl = pptx.addSlide(); cabecalho(sl, 'Complaints by topic', ++n);
+    var hd = function (t, al) { return { text: t, options: { bold: true, color: C.muted, align: al || 'left', fill: { color: C.surf } } }; };
+    sl.addTable([[hd('Topic'), hd('Complaints', 'right'), hd('vs previous period', 'right'), hd('VoC NPS', 'right')]].concat(S.temas.map(function (x) {
+      return [x.t.nome, { text: String(x.n), options: { align: 'right', bold: true } },
+        { text: x.d === 0 ? 'No change' : (x.d > 0 ? '+' : '−') + Math.abs(x.d), options: { align: 'right', color: x.d > 0 ? C.bad : x.d < 0 ? C.good : C.muted } },
+        { text: x.t.nps == null ? '–' : String(x.t.nps), options: { align: 'right' } }];
+    })), { x: 0.6, y: 1.6, w: 12.1, colW: [6.1, 2, 2.2, 1.8], fontFace: F, fontSize: 13, color: C.ink, border: { type: 'solid', pt: 0.5, color: C.line }, rowH: 0.5, valign: 'middle' });
+
+    // 6. What changed
+    sl = pptx.addSlide(); cabecalho(sl, 'What changed', ++n);
+    if (S.sinal) {
+      sl.addText(S.sinal.t.curto + ' at ' + S.sinal.a, { x: 0.6, y: 1.5, w: 8, h: 0.45, fontFace: F, fontSize: 18, bold: true, color: C.ink, margin: 0 });
+      sl.addText(S.frase, { x: 0.6, y: 1.95, w: 8, h: 0.7, fontFace: F, fontSize: 12, color: C.ink2, margin: 0, valign: 'top' });
+      sl.addChart(pptx.ChartType.line, [{ name: S.sinal.a, labels: mesesTxt, values: S.sA || [] }, { name: 'Area average', labels: mesesTxt, values: S.sM || [] }], Object.assign({}, EIXOS,
+        { x: 0.6, y: 2.75, w: 8, h: 4.15, chartColors: [C.red, C.grey], lineSize: 2, lineDataSymbol: 'none', showLegend: true, legendPos: 't', valAxisMinVal: 0 }));
+    } else {
+      sl.addText('No clear increase in this period.', { x: 0.6, y: 1.5, w: 8, h: 0.45, fontFace: F, fontSize: 18, bold: true, color: C.ink, margin: 0 });
+    }
+    sl.addText('Also this period', { x: 9.0, y: 1.5, w: 3.7, h: 0.35, fontFace: F, fontSize: 12, bold: true, color: C.muted, margin: 0 });
+    sl.addText(S.outros.length ? S.outros.map(function (t) { return { text: t, options: { bullet: true, paraSpaceAfter: 10 } }; }) : [{ text: 'Nothing else stood out.' }],
+      { x: 9.0, y: 1.9, w: 3.7, h: 5.0, fontFace: F, fontSize: 12, color: C.ink, valign: 'top', margin: 0 });
+
+    // 7. Latest comments
+    sl = pptx.addSlide(); cabecalho(sl, 'Latest comments', ++n);
+    S.vozes.forEach(function (x, i) {
+      var xx = 0.6 + i * 4.12, neg = x.sentimento === 'negative', pos = x.sentimento === 'positive';
+      sl.addShape(pptx.ShapeType.roundRect, { x: xx, y: 1.6, w: 3.95, h: 4.6, fill: { color: neg ? 'FBEFED' : pos ? 'EEF7F1' : C.surf }, line: { color: neg ? 'F3D6D2' : pos ? 'D5EBDD' : C.line }, rectRadius: 0.18 });
+      sl.addText((pos ? 'PRAISE' : neg ? 'COMPLAINT · ' + x.gravidade.toUpperCase() + ' SEVERITY' : 'NEUTRAL'), { x: xx + 0.3, y: 1.85, w: 3.4, h: 0.3, fontFace: F, fontSize: 9, bold: true, color: neg ? C.bad : pos ? C.good : C.muted, margin: 0 });
+      sl.addText(x.texto, { x: xx + 0.3, y: 2.3, w: 3.4, h: 2.6, fontFace: F, fontSize: 16, color: C.ink, valign: 'top', margin: 0 });
+      sl.addText(x.canal + (x.area ? ' · ' + x.area : ''), { x: xx + 0.3, y: 5.15, w: 3.4, h: 0.3, fontFace: F, fontSize: 11, bold: true, color: C.ink, margin: 0 });
+      sl.addText(tema(x.tema).curto + ' · ' + quando(x) + (x.estrelas ? ' · ' + x.estrelas + ' of 5 stars' : '') + ' · ' + x.id, { x: xx + 0.3, y: 5.45, w: 3.4, h: 0.3, fontFace: F, fontSize: 10, color: C.muted, margin: 0 });
+    });
+
+    var nome = 'Colibri customer feedback - Overview - ' + (st.area || 'All areas') + ' - ' + periodoTxt(j).replace(/[^\w\s–-]/g, '') + '.pptx';
+    return pptx.writeFile({ fileName: nome });
   }
 
   // ======================================================================

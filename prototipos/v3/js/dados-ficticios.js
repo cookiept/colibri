@@ -24,7 +24,7 @@
 
   // name, weight, VoC driver NPS (sample), short name, icon
   var TEMAS = [
-    { nome: 'Restrooms', peso: 17, nps: 14, curto: 'Restrooms', icone: 'gota' },
+    { nome: 'Restrooms', peso: 17, nps: 14, curto: 'Restrooms', icone: 'sanita' },
     { nome: 'Customer service', peso: 15, nps: 33, curto: 'Service', icone: 'pessoa' },
     { nome: 'Food and drinks', peso: 13, nps: 27, curto: 'Food', icone: 'chavena' },
     { nome: 'Price', peso: 12, nps: null, curto: 'Price', icone: 'euro' },

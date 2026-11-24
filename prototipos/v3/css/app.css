@@ -821,3 +821,25 @@ svg { flex: none; }
 .pending-item { border-color: var(--teal-100); }
 .pending-head h2 { color: var(--teal-ink); }
 .pill-delta.neutral, .pill-delta.flat { background: var(--teal-50); color: var(--teal-ink); }
+
+/* ===================== v3.8: sans quotes, chart details, areas toolbar ===================== */
+/* Comments and the "What changed" title use the interface sans, no serif or decorative quotes. */
+.signal h3 { font-family: var(--f-display); font-weight: 600; font-size: 22px; line-height: 1.25; letter-spacing: -0.01em; }
+.voice blockquote { font-family: var(--f-body); font-size: 16px; font-weight: 500; line-height: 1.55; letter-spacing: 0; color: var(--ink); }
+.dr-body h2 { font-family: var(--f-body); font-weight: 500; font-size: 18px; line-height: 1.5; letter-spacing: 0; }
+.voice.neu { background: #F6F4F2; border-color: var(--line); }
+.voice.neu .tag { color: var(--ink-2); }
+.voice .who b { font-weight: 600; }
+.mini-bars .mb { position: relative; cursor: default; }
+.mini-bars .mb[data-tip]:hover::after { content: attr(data-tip); position: absolute; bottom: calc(100% - 14px); left: 50%; transform: translateX(-50%); white-space: nowrap; background: var(--ink); color: #FFFFFF; font-size: 12px; font-weight: 500; padding: 5px 9px; border-radius: 8px; pointer-events: none; z-index: 3; }
+.mini-bars .mb:first-child[data-tip]:hover::after { left: 0; transform: none; }
+.mini-bars .mb:last-child[data-tip]:hover::after { left: auto; right: 0; transform: none; }
+.mini-bars .mb:hover .b { filter: brightness(.92); }
+.split-key b { font-weight: 600; color: var(--ink); }
+.dest .row b small { color: var(--muted); font-weight: 400; font-size: 13px; }
+.areas-toolbar .input-wrap { flex: 1 1 240px; max-width: 320px; }
+@media (max-width: 680px) {
+  .voice blockquote { font-size: 15.5px; }
+  .signal h3 { font-size: 20px; }
+  .areas-toolbar .input-wrap { max-width: none; flex-basis: 100%; }
+}
