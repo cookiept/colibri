@@ -12,8 +12,8 @@ Abrir `index.html` no browser (funciona com duplo clique, sem servidor). Também
 
 | Ecrã | Endereço | O que tem |
 | --- | --- | --- |
-| Visão geral | `#/overview` | Cartões com número, variação e gráfico (reclamações, menções por fonte, rating Google), última atividade; áreas de serviço, respostas por mês e temas; sinal principal (área × tema) com a média das áreas, voz do cliente e casos por tratar |
-| Casos | `#/cases` | Tabela agrupada por estado, área, fonte ou tema; pesquisa e filtros; painel lateral com histórico, mudança de estado e modelo de resposta |
+| Visão geral | `#/overview` | Cartões com número, variação e gráfico (reclamações, menções por fonte, rating Google) e última atividade; áreas de serviço, respostas por mês e temas; "What changed" a toda a largura (gráfico da área × tema contra a média, e outras mudanças ao lado); "What customers say" com três citações lado a lado |
+| Casos | `#/cases` | Faixa "To handle" (New, In review, High severity) que filtra a tabela ao clicar; tabela agrupada por estado, área, fonte ou tema; pesquisa e filtros; painel lateral com histórico, mudança de estado e modelo de resposta |
 | Áreas de serviço | `#/areas` | Tabela comparativa das áreas e mapa de calor área × tema |
 | Ficha da área | `#/areas/<nome>` | Ficha (autoestrada, responsável, serviços), casos por tratar, resumo com variação, temas face à média das áreas, evolução mensal, comentários recentes |
 | Fontes | `#/sources` | De onde vêm os dados, carregamento de ficheiros e regras de classificação |

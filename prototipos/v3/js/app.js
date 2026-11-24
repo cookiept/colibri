@@ -53,7 +53,6 @@
     relogio: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
   };
   function ic(nome) { return '<svg viewBox="0 0 24 24" aria-hidden="true">' + (P[nome] || '') + '</svg>'; }
-  var SPARK = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5c.6 4.6 2.9 6.9 7.5 7.5-4.6.6-6.9 2.9-7.5 7.5-.6-4.6-2.9-6.9-7.5-7.5 4.6-.6 6.9-2.9 7.5-7.5zM19 15.5c.3 2 1.2 2.9 3 3.2-1.8.3-2.7 1.2-3 3.2-.3-2-1.2-2.9-3-3.2 1.8-.3 2.7-1.2 3-3.2z"/></svg>';
 
   // ---------- utilitários ----------
   function $(id) { return document.getElementById(id); }
@@ -119,7 +118,7 @@
   // ---------- estado ----------
   var st = {
     periodo: 3, area: '',
-    casos: { q: '', fonte: '', grav: '', tema: '', agrupar: 'estado' },
+    casos: { q: '', fonte: '', grav: '', tema: '', foco: '', agrupar: 'estado' },
     abertos: {}, mostrar: {}, voz: 0, drawer: null, actFonte: '',
   };
   var alterado = {};      // id -> estado escolhido nesta sessão
@@ -187,7 +186,7 @@
     return { p: partes[0] || 'overview', arg: partes[1] ? decodeURIComponent(partes[1]) : null };
   }
   function irCasos(filtros) {
-    st.casos = Object.assign({ q: '', fonte: '', grav: '', tema: '', agrupar: st.casos.agrupar }, filtros || {});
+    st.casos = Object.assign({ q: '', fonte: '', grav: '', tema: '', foco: '', agrupar: st.casos.agrupar }, filtros || {});
     if (location.hash === '#/cases') render(); else location.hash = '#/cases';
   }
   function irArea(nome) { location.hash = '#/areas/' + slug(nome); }
@@ -332,7 +331,7 @@
     var graves = rows.filter(function (x) { return x.gravidade === 'High' && porTratar(x); });
     if (graves.length) {
       var antigo = graves.reduce(function (a, b) { return diasAtras(a) > diasAtras(b) ? a : b; });
-      outrosSinais.push({ html: '<b>' + nf(graves.length) + (graves.length === 1 ? ' high-severity case' : ' high-severity cases') + ' to handle.</b> The oldest is ' + diasAtras(antigo) + ' days old and is about ' + esc(antigo.tema.toLowerCase()) + (antigo.area ? ' at ' + esc(antigo.area) : '') + '.', acao: function () { irCasos({ grav: 'High' }); } });
+      outrosSinais.push({ html: '<b>' + nf(graves.length) + (graves.length === 1 ? ' high-severity case' : ' high-severity cases') + ' to handle.</b> The oldest is ' + diasAtras(antigo) + ' days old and is about ' + esc(antigo.tema.toLowerCase()) + (antigo.area ? ' at ' + esc(antigo.area) : '') + '.', acao: function () { irCasos({ foco: 'high' }); } });
     }
     var tempos = D.FONTES.map(function (f) {
       var rf = rows.filter(function (x) { return x.fonte === f.id && x.respondido; });
@@ -349,6 +348,7 @@
     var lista = '<ul class="more-signals">' + outrosSinais.map(function (s, i) { return '<li><button type="button" data-sinal="' + i + '"><span class="txt">' + s.html + '</span>' + ic('chevron') + '</button></li>'; }).join('') + '</ul>';
 
     var sig;
+    var lado = '<aside class="signal-side"><h4>Also this period</h4>' + (outrosSinais.length ? lista : '<p class="empty-line">Nothing else stood out.</p>') + '</aside>';
     if (sinalAtual) {
       var c = sinalAtual;
       var gA = filtrar(j.desde, j.ate, c.a).filter(function (x) { return x.fonte === 'google'; });
@@ -356,25 +356,28 @@
       var dRat = delta(media(gA, function (x) { return x.estrelas; }), media(gP, function (x) { return x.estrelas; }), true, 'dec');
       var frase = 'Complaints about ' + c.t.nome.toLowerCase() + ' at ' + c.a + ' went from ' + c.np + ' to ' + c.n + ' compared with the previous period' +
         (dRat.cls === 'bad' ? ', and the area\'s Google rating fell ' + nf(Math.abs(dRat.v), 1) + ' points.' : '.');
-      sig = '<article class="panel signal" aria-labelledby="t-sinal"><div class="signal-top"><span class="spark">' + SPARK + '</span><div><p class="eyebrow">Signal</p><h3 id="t-sinal">' + esc(c.t.curto) + ' at ' + esc(c.a) + '</h3><p class="lead">' + esc(frase) + '</p></div></div>' +
+      sig = '<article class="panel signal" aria-labelledby="t-sinal"><div class="signal-main"><div class="signal-top"><p class="eyebrow">What changed</p><h3 id="t-sinal">' + esc(c.t.curto) + ' at ' + esc(c.a) + '</h3><p class="lead">' + esc(frase) + '</p></div>' +
         '<div class="signal-chart"><div id="ch-signal" role="img" aria-label="Complaints per month about ' + esc(c.t.nome.toLowerCase()) + ' at ' + esc(c.a) + ', compared with the area average"></div>' +
         '<div class="chip-row"><span class="float-chip">' + ic(c.t.icone) + esc(c.t.curto) + '<span class="pt-delta bad tnum">↑ ' + (c.n - c.np) + '</span></span>' +
         (dRat.cls !== 'flat' ? '<span class="float-chip"><img src="' + LOGO.Google + '" alt="">Area rating<span class="pt-delta ' + dRat.cls + ' tnum">' + dRat.txt + '</span></span>' : '') + '</div>' +
         '</div><div class="signal-foot"><span class="legend"><span><i style="background:#C2362E;height:3px"></i>' + esc(c.a) + '</span><span><i style="background:repeating-linear-gradient(90deg,#9A9895 0 4px,transparent 4px 7px);height:2px"></i>Area average</span></span>' +
-        '<button type="button" class="link" id="btn-sinal">View the ' + c.n + ' cases' + ic('seta') + '</button></div>' + (outrosSinais.length ? lista : '') + '</article>';
+        '<button type="button" class="link" id="btn-sinal">View the ' + c.n + ' cases' + ic('seta') + '</button></div></div>' + lado + '</article>';
     } else {
-      sig = '<article class="panel signal"><div class="signal-top"><span class="spark">' + SPARK + '</span><div><p class="eyebrow">Signals</p><h3>No clear increase</h3><p class="lead">No area and topic combination rose clearly in this period.</p></div></div>' + (outrosSinais.length ? '<div style="margin-top:18px">' + lista + '</div>' : '') + '</article>';
+      sig = '<article class="panel signal" aria-labelledby="t-sinal"><div class="signal-main"><div class="signal-top"><p class="eyebrow">What changed</p><h3 id="t-sinal">No clear increase</h3><p class="lead">No area and topic combination rose clearly in this period.</p></div></div>' + lado + '</article>';
     }
 
-    vozes = rows.filter(function (x) { return isNeg(x) && x.gravidade === 'High'; }).sort(function (a, b) { return dataDe(b) - dataDe(a); }).slice(0, 4)
-      .concat(rows.filter(function (x) { return x.sentimento === 'positive'; }).sort(function (a, b) { return dataDe(b) - dataDe(a); }).slice(0, 2));
-    if (st.voz >= vozes.length) st.voz = 0;
-    var abertosP = rows.filter(porTratar);
-    var nNovo = abertosP.filter(function (x) { return estadoDe(x) === 'New'; }).length;
-    var nGraves = abertosP.filter(function (x) { return x.gravidade === 'High'; }).length;
-    var porTratarCard = '<article class="kpi kpi-todo"><h2>To handle</h2><div class="kpi-num"><b class="tnum">' + nf(abertosP.length) + '</b>' + (nGraves ? '<span class="pill-delta bad tnum">' + nGraves + ' high severity</span>' : '') + '</div>' +
-      '<p class="kpi-sub tnum">' + nNovo + ' new · ' + (abertosP.length - nNovo) + ' in review</p><a class="btn btn-dark pill" href="#/cases" style="margin-top:18px;align-self:flex-start">View cases' + ic('seta') + '</a></article>';
-    W.sinal = sig; W.voz = '<div id="voz" class="voz-wrap"></div>'; W.portratar = porTratarCard;
+    // What customers say: the two most recent high-severity complaints and the most recent praise, side by side
+    vozes = rows.filter(function (x) { return isNeg(x) && x.gravidade === 'High'; }).sort(function (a, b) { return dataDe(b) - dataDe(a); }).slice(0, 2)
+      .concat(rows.filter(function (x) { return x.sentimento === 'positive'; }).sort(function (a, b) { return dataDe(b) - dataDe(a); }).slice(0, 1));
+    var vozHtml = '<section class="voices" aria-labelledby="t-voz"><div class="col-head"><h2 id="t-voz">What customers say</h2><a class="link-u" href="#/cases">View cases</a></div>' +
+      (vozes.length ? '<div class="voice-row">' + vozes.map(function (x) {
+        var neg = x.sentimento !== 'positive';
+        return '<figure class="voice' + (neg ? ' neg' : '') + '"><span class="tag">' + (neg ? 'Complaint · high severity' : 'Praise') + '</span>' +
+          '<blockquote>“' + esc(x.texto) + '”</blockquote>' +
+          '<figcaption class="who"><span class="src"><img src="' + LOGO[x.canal] + '" alt=""></span><div><b>' + esc(x.canal) + (x.area ? ' · ' + esc(x.area) : '') + '</b><span>' + quando(x) + (x.estrelas ? ' · ' : '') + estrelas(x.estrelas) + '</span></div>' +
+          '<button type="button" class="link" data-abrir="' + x.id + '">Open case' + ic('seta') + '</button></figcaption></figure>';
+      }).join('') + '</div>' : '<p class="empty-line">No comments in this period.</p>') + '</section>';
+    W.sinal = sig; W.voz = vozHtml;
     h += '<p class="edit-hint" id="edit-hint"' + (st.editar ? '' : ' hidden') + '>Drag the blocks to change the order. The order is saved in this browser.</p>' + quadro(W);
     return h;
   }
@@ -390,22 +393,6 @@
     }).join('');
   }
 
-  function desenharVoz() {
-    var el = $('voz'); if (!el) return;
-    var x = vozes[st.voz];
-    if (!x) { el.innerHTML = ''; return; }
-    var neg = x.sentimento !== 'positive';
-    el.innerHTML = '<figure class="panel voice' + (neg ? ' neg' : '') + '" style="margin:0;flex:1;height:100%">' +
-      '<div class="top"><span class="tag">' + (neg ? 'Customer voice · high severity' : 'Customer voice · praise') + '</span>' +
-      '<span class="nav-q"><button type="button" class="icon-btn" id="voz-ant" aria-label="Previous comment">' + ic('esq') + '</button><button type="button" class="icon-btn" id="voz-seg" aria-label="Next comment">' + ic('chevron') + '</button></span></div>' +
-      '<blockquote>“' + esc(x.texto) + '”</blockquote>' +
-      '<figcaption class="who"><span class="src"><img src="' + LOGO[x.canal] + '" alt=""></span><div><b>' + esc(x.canal) + (x.area ? ' · ' + esc(x.area) : '') + '</b><span>' + quando(x) + (x.estrelas ? ' · ' : '') + estrelas(x.estrelas) + '</span></div></figcaption>' +
-      '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:18px"><span class="meta tnum" style="margin:0">' + (st.voz + 1) + ' of ' + vozes.length + '</span><button type="button" class="link" id="voz-abrir">Open case' + ic('seta') + '</button></div></figure>';
-    $('voz-ant').onclick = function () { st.voz = (st.voz - 1 + vozes.length) % vozes.length; desenharVoz(); var q = el.querySelector('blockquote'); q.classList.add('swap'); $('voz-ant').focus(); };
-    $('voz-seg').onclick = function () { st.voz = (st.voz + 1) % vozes.length; desenharVoz(); var q = el.querySelector('blockquote'); q.classList.add('swap'); $('voz-seg').focus(); };
-    $('voz-abrir').onclick = function () { abrirGaveta(x.id); };
-  }
-
   function ligarVisao() {
     ligarQuadro();
     var j = janela();
@@ -418,7 +405,7 @@
     });
     $$('[data-sinal]').forEach(function (b) { b.onclick = function () { outrosSinais[+b.dataset.sinal].acao(); }; });
     if ($('btn-sinal')) $('btn-sinal').onclick = function () { st.area = sinalAtual.a; irCasos({ tema: sinalAtual.t.nome }); };
-    desenharVoz();
+    $$('.voices [data-abrir]').forEach(function (b) { b.onclick = function () { abrirGaveta(b.dataset.abrir); }; });
 
     var meses = meses12();
     // Rating: linha com área, sem eixos, ponto no último mês
@@ -480,10 +467,10 @@
   // ======================================================================
   // ORGANIZAR A VISÃO GERAL (arrastar blocos, como no ecrã do iPhone)
   // ======================================================================
-  var ORDEM_PADRAO = ['reclamacoes', 'fontes', 'rating', 'atividade', 'areas', 'respostas', 'temas', 'sinal', 'voz', 'portratar'];
-  var LARGURA = { reclamacoes: 'w-kpi', fontes: 'w-kpi', rating: 'w-kpi', atividade: 'w-kpi', areas: 'w-areas', respostas: 'w-resp', temas: 'w-temas', sinal: 'w-sinal', voz: 'w-voz', portratar: 'w-todo' };
-  var NOME_BLOCO = { reclamacoes: 'Complaints', fontes: 'Mentions by source', rating: 'Google rating', atividade: 'Latest activity', areas: 'Service areas', respostas: 'Replies by month', temas: 'Topics', sinal: 'Signal', voz: 'Customer voice', portratar: 'To handle' };
-  var CHAVE_ORDEM = 'colibri.visao-geral.ordem';
+  var ORDEM_PADRAO = ['reclamacoes', 'fontes', 'rating', 'atividade', 'areas', 'respostas', 'temas', 'sinal', 'voz'];
+  var LARGURA = { reclamacoes: 'w-kpi', fontes: 'w-kpi', rating: 'w-kpi', atividade: 'w-kpi', areas: 'w-areas', respostas: 'w-resp', temas: 'w-temas', sinal: 'w-full', voz: 'w-full' };
+  var NOME_BLOCO = { reclamacoes: 'Complaints', fontes: 'Mentions by source', rating: 'Google rating', atividade: 'Latest activity', areas: 'Service areas', respostas: 'Replies by month', temas: 'Topics', sinal: 'What changed', voz: 'What customers say' };
+  var CHAVE_ORDEM = 'colibri.overview.order';
   function lerOrdem() {
     try {
       var o = JSON.parse(localStorage.getItem(CHAVE_ORDEM));
@@ -602,6 +589,7 @@
     function opt(v, l, sel) { return '<option value="' + esc(v) + '"' + (v === sel ? ' selected' : '') + '>' + esc(l) + '</option>'; }
     var temasPresentes = D.TEMAS.filter(function (t) { return base.some(function (x) { return x.tema === t.nome; }); });
     return '<div class="page-head"><div><h1>Cases</h1><p class="meta">' + esc(areaTxt()) + ' · ' + periodoTxt(j) + ' · <b class="tnum">' + nf(base.length) + '</b> mentions, <b class="tnum">' + nf(abertos) + '</b> to handle</p></div>' + filtros({ area: true }) + '</div>' +
+      '<div class="todo-strip" id="todo-strip" role="group" aria-label="To handle"></div>' +
       '<div class="toolbar">' +
       '<div class="input-wrap">' + ic('lupa') + '<label class="sr" for="c-q">Search</label><input class="input" id="c-q" type="search" placeholder="Search text, ID or area" value="' + esc(c.q) + '" autocomplete="off"></div>' +
       '<label class="sr" for="c-fonte">Source</label><select class="select" id="c-fonte">' + opt('', 'All sources', c.fonte) + D.FONTES.map(function (f) { return opt(f.id, f.curto, c.fonte); }).join('') + '</select>' +
@@ -612,10 +600,29 @@
       '</div><section class="panel"><div class="tbl-wrap" id="casos-tabela"></div></section>';
   }
 
+  // To handle: open cases by status. Clicking a number filters the table; clicking it again clears it.
+  var FOCOS = [
+    { id: 'New', k: 'New', s: 'Not looked at yet', f: function (x) { return estadoDe(x) === 'New'; } },
+    { id: 'In review', k: 'In review', s: 'Someone is on it', f: function (x) { return estadoDe(x) === 'In review'; } },
+    { id: 'high', k: 'High severity', s: 'Open and high severity', f: function (x) { return porTratar(x) && x.gravidade === 'High'; }, bad: true },
+  ];
+  function desenharFaixa() {
+    var el = $('todo-strip'); if (!el) return;
+    var j = janela(), base = filtrar(j.desde, j.ate);
+    el.innerHTML = '<p class="todo-title">To handle</p>' + FOCOS.map(function (o) {
+      var n = base.filter(o.f).length, on = st.casos.foco === o.id;
+      return '<button type="button" class="todo-stat' + (on ? ' on' : '') + (o.bad && n ? ' bad' : '') + '" data-foco="' + o.id + '" aria-pressed="' + on + '"><span class="k">' + o.k + '</span><b class="tnum">' + nf(n) + '</b><span class="s">' + o.s + '</span></button>';
+    }).join('') + (st.casos.foco ? '<button type="button" class="link todo-clear" data-foco="">Show all cases</button>' : '');
+    $$('[data-foco]', el).forEach(function (b) {
+      b.onclick = function () { var v = b.dataset.foco; st.casos.foco = st.casos.foco === v ? '' : v; desenharFaixa(); desenharTabela(); };
+    });
+  }
+
   function casosFiltrados() {
     var j = janela(), c = st.casos, q = norm(c.q.trim());
+    var foco = FOCOS.filter(function (o) { return o.id === c.foco; })[0];
     return filtrar(j.desde, j.ate).filter(function (x) {
-      return (!c.fonte || x.fonte === c.fonte) && (!c.grav || x.gravidade === c.grav) && (!c.tema || x.tema === c.tema) &&
+      return (!foco || foco.f(x)) && (!c.fonte || x.fonte === c.fonte) && (!c.grav || x.gravidade === c.grav) && (!c.tema || x.tema === c.tema) &&
         (!q || norm(x.texto + ' ' + x.id + ' ' + (x.area || '') + ' ' + x.tema + ' ' + x.responsavel).indexOf(q) >= 0);
     });
   }
@@ -632,7 +639,7 @@
   function desenharTabela() {
     var el = $('casos-tabela'); if (!el) return;
     var lista = casosFiltrados();
-    if (!lista.length) { el.innerHTML = '<div class="empty"><h3>No cases match these filters</h3><p>Clear the search or pick another period at the top.</p></div>'; return; }
+    if (!lista.length) { el.innerHTML = '<div class="empty"><h3>No cases match these filters</h3><p>Clear the search or the To handle filter, or pick another period at the top.</p></div>'; return; }
     var gs = grupos(lista).filter(function (g) { return g.itens.length; });
     var EST = {}; ESTADOS.forEach(function (e) { EST[e.id] = e; });
     var html = '<table class="tbl cases"><colgroup><col class="c-id"><col class="c-txt"><col class="c-src"><col class="c-area"><col class="c-tema"><col class="c-grav"><col class="c-est"><col class="c-resp"><col class="c-when"></colgroup>' +
@@ -681,6 +688,7 @@
     var t;
     $('c-q').oninput = function (e) { clearTimeout(t); t = setTimeout(function () { st.casos.q = e.target.value; desenharTabela(); }, 120); };
     ['fonte', 'grav', 'tema', 'agrupar'].forEach(function (k) { $('c-' + k).onchange = function (e) { st.casos[k] = e.target.value; desenharTabela(); }; });
+    desenharFaixa();
     desenharTabela();
   }
 
@@ -764,7 +772,7 @@
   }
   function atualizarDepoisDeMudar() {
     var r = rota();
-    if (r.p === 'cases') { desenharTabela(); var n = D.MENCOES.filter(porTratar).length; $('nav-count').textContent = n ? nf(n) : ''; desenharGaveta(); }
+    if (r.p === 'cases') { desenharFaixa(); desenharTabela(); var n = D.MENCOES.filter(porTratar).length; $('nav-count').textContent = n ? nf(n) : ''; desenharGaveta(); }
     else render();
   }
   $('drawer-scrim').onclick = fecharGaveta;

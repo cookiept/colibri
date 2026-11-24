@@ -733,3 +733,45 @@ svg { flex: none; }
 .board .w.dd-host { position: relative; z-index: 30; }
 .board.editing .dd-list { display: none; }
 @media (prefers-reduced-motion: reduce) { .dd-list, .dd.open .dd-list, .dd-chev, .act.swap { transition: none !important; animation: none !important; } }
+
+/* ===================== v3.6: What changed, What customers say, To handle in Cases ===================== */
+.w-full { grid-column: 1 / -1; }
+.signal { display: grid; grid-template-columns: minmax(0, 1.75fr) minmax(280px, 1fr); }
+.signal-main { display: flex; flex-direction: column; min-width: 0; }
+.signal .signal-top { display: block; padding: 22px 24px 0; }
+.signal .eyebrow { margin-bottom: 6px; }
+.signal-chart { height: 210px; }
+.signal-side { border-left: 1px solid var(--line); padding: 22px 0 6px; display: flex; flex-direction: column; min-width: 0; }
+.signal-side h4 { font-family: var(--f-body); font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); padding: 0 22px 12px; }
+.signal-side .more-signals button { padding: 14px 22px; }
+.signal-side .more-signals .txt { font-size: 13.5px; line-height: 1.5; }
+.signal-side .empty-line { padding: 0 22px; }
+
+.voices .col-head { margin-bottom: 14px; }
+.voice-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
+.voice { margin: 0; padding: 20px 22px; border: 1px solid #D5EBDD; border-radius: 22px; display: flex; flex-direction: column; gap: 14px; }
+.voice .tag { align-self: flex-start; }
+.voice blockquote { margin: 0; font-size: 21px; line-height: 1.3; flex: 1; }
+.voice .who { margin-top: 0; }
+.voice .who > div { flex: 1; min-width: 0; }
+.voice .who .link { flex: none; align-self: center; }
+
+.todo-strip { display: flex; flex-wrap: wrap; align-items: stretch; gap: 12px; margin: 0 0 20px; }
+.todo-title { width: 100%; font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.todo-stat { flex: 1 1 200px; display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "k b" "s b"; align-items: center; column-gap: 12px; padding: 14px 18px; text-align: left; background: #F6F4F2; border: 1px solid transparent; border-radius: 18px; transition: background-color .15s ease, border-color .15s ease, box-shadow .15s ease; }
+.todo-stat:hover { background: #EFECE8; }
+.todo-stat .k { grid-area: k; font-size: 14px; font-weight: 600; }
+.todo-stat .s { grid-area: s; font-size: 12.5px; color: var(--muted); }
+.todo-stat b { grid-area: b; font-family: var(--f-display); font-size: 30px; font-weight: 500; letter-spacing: -0.02em; line-height: 1; }
+.todo-stat.bad b { color: var(--bad); }
+.todo-stat.on { background: #FFFFFF; border-color: var(--ink); box-shadow: 0 0 0 1px var(--ink); }
+.todo-clear { align-self: center; }
+
+@media (max-width: 1080px) {
+  .signal { grid-template-columns: minmax(0, 1fr); }
+  .signal-side { border-left: 0; border-top: 1px solid var(--line); padding-top: 18px; }
+}
+@media (max-width: 680px) {
+  .voice blockquote { font-size: 19px; }
+  .todo-stat { flex-basis: 100%; }
+}
