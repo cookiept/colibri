@@ -307,7 +307,7 @@
     }).join('') + '</ul><p class="col-note">Share of complaints with a known area</p></section>';
 
     snap.porArea = porArea;
-    var colG = '<section class="col"><div class="col-head"><h2>Replies by month</h2><div class="legend"><span><i class="dot" style="background:#2E8B57"></i>Replied</span><span><i class="dot" style="background:#E5807A"></i>No reply</span></div></div><div id="ch-volume" role="img" aria-label="Complaints and neutral comments by month, replied and not replied"></div></section>';
+    var colG = '<section class="col"><div class="col-head"><h2>Replies by month</h2><div class="legend"><span><i class="dot" style="background:#2E8B57"></i>Replied</span><span><i class="dot" style="background:#E5807A"></i>No reply</span></div></div><div class="chart-fill"><div id="ch-volume" role="img" aria-label="Complaints and neutral comments by month, replied and not replied"></div></div></section>';
 
     var temas = D.TEMAS.map(function (t) {
       var n = neg.filter(function (x) { return x.tema === t.nome; }).length;
@@ -980,6 +980,25 @@
     jira: 'Complaints project filter exported as CSV',
     redes: 'Meta Business Suite inbox export (.xlsx)',
   };
+  var LIGACAO = { google: 'API · Google approval', jira: 'API · service account', redes: 'API · Meta app' };
+  var API = [
+    { nome: 'Jira', logo: LOGO.Jira, via: 'Jira Cloud REST API, JQL search', estado: 'Possible', cls: 'ok',
+      campos: ['Key', 'Summary', 'Description', 'Status', 'Priority', 'Assignee', 'Created and updated', 'Labels', 'Custom fields (area, topic)', 'Internal comments'],
+      precisa: ['A service account with an API token', 'The complaints project and its fields confirmed'],
+      nao: 'calls straight from the browser.' },
+    { nome: 'Google reviews', logo: LOGO.Google, via: 'Google Business Profile API', estado: 'After approval', cls: 'warn',
+      campos: ['Reviewer', 'Stars 1 to 5', 'Review text', 'Created and updated', 'Photos', 'Our reply'],
+      precisa: ['Access request approved by Google (up to 14 days)', 'Owner or manager access to each area\'s profile'],
+      nao: 'reviews of profiles we do not manage. Replying from here is possible later.' },
+    { nome: 'Facebook', logo: LOGO.Facebook, via: 'Graph API, Pages', estado: 'Possible', cls: 'ok',
+      campos: ['Comments on our posts', 'Comment text and date', 'Author name', 'Recommendations: yes or no', 'Recommendation text and stars'],
+      precisa: ['A Brisa Meta app with the page permissions', 'A Page admin to grant access', 'Meta App Review before going live'],
+      nao: 'posts by other people or groups that mention Colibri outside our page.' },
+    { nome: 'Instagram', logo: LOGO.Instagram, via: 'Instagram Graph API', estado: 'Possible, with limits', cls: 'warn',
+      campos: ['Comments on our posts', 'Comment text and date', 'Replies', '@mentions of our account'],
+      precisa: ['The same Meta app', 'The professional account linked to the Facebook page'],
+      nao: 'comments on other accounts\' posts, Stories and private accounts. 50 comments per request.' },
+  ];
   function pgFontes() {
     var h = '<div class="page-head"><div><h1>Sources</h1><p class="meta">Where the data comes from, how it arrives and how it is classified</p></div></div>' +
       '<section class="panel"><div class="tbl-wrap"><table class="tbl" style="min-width:860px"><thead><tr><th>Source</th><th class="num">Records</th><th>Period covered</th><th>Last upload</th><th>Automatic connection</th></tr></thead><tbody>' +
@@ -987,8 +1006,23 @@
         var r = D.MENCOES.filter(function (x) { return x.fonte === f.id; });
         return '<tr><td><span class="src-name"><span class="lg">' + logoFonte(f) + '</span><span><span class="strong">' + esc(f.nome) + '</span><span class="sub">' + COMO[f.id] + '</span></span></span></td>' +
           '<td class="num strong">' + nf(r.length) + '</td><td>Dec 2024 – Nov 2026</td><td>23 Nov 2026</td>' +
-          '<td><span class="badge dashed">Phase 2</span></td></tr>';
+          '<td><span class="badge dashed">' + LIGACAO[f.id] + '</span></td></tr>';
       }).join('') + '</tbody></table></div></section>';
+
+    // What each platform's API gives us (checked against the official documentation, 25 Nov 2026)
+    h += '<section class="panel api-panel"><div class="panel-head"><h2>What each API can give us</h2><p>Checked against the official documentation on 25 Nov 2026. Today the data comes from file uploads; this is what an automatic connection would bring.</p></div>' +
+      '<ol class="api-flow" aria-label="How an automatic connection would work">' +
+      '<li><b>The four platforms</b><span>Jira, Google, Facebook, Instagram</span></li>' +
+      '<li><b>A Brisa service</b><span>Collects every hour and on webhooks, keeps the keys</span></li>' +
+      '<li><b>Classification</b><span>Topic, sentiment, area and severity</span></li>' +
+      '<li><b>This site</b><span>Behind the Brisa login, reads the result</span></li></ol>' +
+      '<div class="api-grid">' + API.map(function (a) {
+        return '<article class="api-card"><header><img src="' + a.logo + '" alt=""><div><h3>' + a.nome + '</h3><p>' + a.via + '</p></div><span class="badge ' + a.cls + '">' + a.estado + '</span></header>' +
+          '<p class="api-k">Data we get</p><ul class="api-chips">' + a.campos.map(function (c) { return '<li>' + c + '</li>'; }).join('') + '</ul>' +
+          '<p class="api-k">What it takes</p><ul class="api-list">' + a.precisa.map(function (c) { return '<li>' + c + '</li>'; }).join('') + '</ul>' +
+          '<p class="api-no"><b>Not available:</b> ' + a.nao + '</p></article>';
+      }).join('') + '</div>' +
+      '<p class="api-foot">Google Analytics only reports website traffic (users, sessions, page views). It has no reviews or comments, so reviews come from the Business Profile API. API keys can never live in this public site: the Brisa service holds them, and Jira does not accept calls made from a browser.</p></section>';
 
     h += '<div class="two-col" style="margin-top:20px"><section class="panel"><div class="panel-head"><h2>Upload files</h2><p>Exports from the three sources</p></div><div class="panel-body">' +
       '<label class="drop" id="drop" for="ficheiros">' + ic('nuvem') + '<b>Drag files here</b><p>Or click to choose. Accepts .xlsx and .csv. Files are read on this computer and nothing is sent anywhere.</p><input id="ficheiros" type="file" multiple accept=".xlsx,.xls,.csv" class="sr"></label>' +

@@ -13,9 +13,11 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-PT/1.1.0/).
 - v3: variações a verde quando são boas e a vermelho quando são más; rosa Colibri só na marca e na ação principal; aviso de dados fictícios retirado do ecrã.
 
 ### Corrigido
+- v3: o gráfico "Replies by month" ocupa a altura toda do bloco e acaba alinhado com Service areas e Topics.
 - v3: a página ocupa toda a largura do ecrã (sem bloco branco à direita).
 
 ### Adicionado
+- v3: em Sources, o que a API de cada plataforma permite tirar, o que é preciso para ligar e o que não está disponível.
 - v3: pesquisa, filtros (autoestrada, serviço, casos por tratar) e ordenação em Service areas.
 - v3: exportar a Visão geral para PowerPoint editável (PptxGenJS 3.12, MIT, em `prototipos/v3/js/vendor/`).
 - v3: interface em inglês (textos, dados de exemplo e endereços `#/overview`, `#/cases`, `#/sources`).

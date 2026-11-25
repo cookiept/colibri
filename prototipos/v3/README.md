@@ -16,7 +16,7 @@ Abrir `index.html` no browser (funciona com duplo clique, sem servidor). Também
 | Casos | `#/cases` | Faixa "To handle" (New, In review, High severity) que filtra a tabela ao clicar; tabela agrupada por estado, área, fonte ou tema; pesquisa e filtros; painel lateral com histórico, mudança de estado e modelo de resposta |
 | Áreas de serviço | `#/areas` | Pesquisa por área ou responsável; filtros por autoestrada, serviço e casos por tratar; ordenação (reclamações, rating Google, por tratar, nome). A tabela e o mapa de calor área × tema mostram só as áreas que passam nos filtros |
 | Ficha da área | `#/areas/<nome>` | Ficha (autoestrada, responsável, serviços), casos por tratar, resumo com variação, temas face à média das áreas, evolução mensal, comentários recentes |
-| Fontes | `#/sources` | De onde vêm os dados, carregamento de ficheiros e regras de classificação |
+| Fontes | `#/sources` | De onde vêm os dados; o que a API de cada plataforma permite tirar (Jira, avaliações Google, Facebook, Instagram), o que é preciso e o que não dá, verificado na documentação oficial a 25 nov 2026; carregamento de ficheiros e regras de classificação |
 
 O período e a área de serviço escolhidos no topo aplicam-se a todos os ecrãs.
 

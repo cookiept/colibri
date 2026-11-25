@@ -843,3 +843,53 @@ svg { flex: none; }
   .signal h3 { font-size: 20px; }
   .areas-toolbar .input-wrap { max-width: none; flex-basis: 100%; }
 }
+
+/* ===================== v3.9: "Replies by month" fills its block ===================== */
+/* The chart takes the full height of the row, so its baseline lines up with the bottom of the
+   Service areas and Topics blocks next to it. The chart sits absolutely inside .chart-fill so it
+   never adds height of its own to the row. */
+.w-resp > .col { display: flex; flex-direction: column; }
+.w-resp .chart-fill { flex: 1; position: relative; min-height: 260px; }
+.w-resp .chart-fill #ch-volume { position: absolute; inset: 0; height: auto; }
+
+/* ===================== v3.9: Sources, what each API can give us ===================== */
+.api-panel { margin-top: 20px; }
+.api-flow { list-style: none; margin: 0; padding: 18px 22px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; counter-reset: passo; }
+.api-flow li { position: relative; padding: 12px 14px; border-radius: 14px; background: var(--teal-50); counter-increment: passo; }
+.api-flow li b { display: block; font-size: 13.5px; color: var(--teal-ink); }
+.api-flow li b::before { content: counter(passo) ". "; }
+.api-flow li span { display: block; font-size: 12.5px; color: var(--ink-2); margin-top: 2px; }
+.api-flow li:not(:last-child)::after { content: ""; position: absolute; right: -10px; top: 50%; width: 8px; height: 8px; border-top: 1.5px solid var(--teal-300); border-right: 1.5px solid var(--teal-300); transform: translateY(-50%) rotate(45deg); }
+.api-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; padding: 0 22px 6px; }
+.api-card { border: 1px solid var(--line); border-radius: 18px; padding: 18px 18px 16px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.api-card header { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 4px; }
+.api-card header img { width: 28px; height: 28px; flex: none; margin-top: 2px; }
+.api-card header > div { flex: 1; min-width: 0; }
+.api-card h3 { font-size: 16px; }
+.api-card header p { font-size: 12.5px; color: var(--muted); margin: 2px 0 0; }
+.badge.ok { background: #E7F4EC; border-color: #CBE6D5; color: var(--good); }
+.api-k { font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin: 6px 0 0; }
+.api-chips { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.api-chips li { font-size: 12.5px; padding: 3px 10px; border-radius: 999px; background: var(--teal-50); color: var(--teal-ink); }
+.api-list { margin: 0; padding-left: 18px; font-size: 13px; color: var(--ink-2); }
+.api-list li + li { margin-top: 3px; }
+.api-no { margin: 6px 0 0; font-size: 12.5px; color: var(--muted); border-top: 1px solid var(--line); padding-top: 10px; }
+.api-no b { color: var(--ink-2); font-weight: 600; }
+.api-foot { margin: 0; padding: 14px 22px 20px; font-size: 12.5px; color: var(--muted); }
+@media (max-width: 900px) {
+  .api-grid { grid-template-columns: minmax(0, 1fr); }
+  .api-flow { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .api-flow li:nth-child(2)::after { display: none; }
+}
+@media (max-width: 560px) {
+  .api-flow { grid-template-columns: minmax(0, 1fr); }
+  .api-flow li::after { display: none; }
+  .api-grid { grid-template-columns: minmax(0, 1fr); }
+}
+.api-panel .panel-head { flex-direction: column; align-items: flex-start; gap: 2px; padding: 16px 22px; }
+.api-panel .panel-head p { margin: 0; }
+@media (max-width: 560px) {
+  .api-flow, .api-grid { padding-left: 14px; padding-right: 14px; }
+  .api-foot { padding-left: 14px; padding-right: 14px; }
+  .api-panel .panel-head { padding: 14px; }
+}
